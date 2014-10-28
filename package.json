@@ -1,0 +1,31 @@
+{
+  "name": "PlatformJS",
+  "version": "0.0.1",
+  "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test:phantom"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/podio/platformJS.git"
+  },
+  "keywords": [
+    "podio"
+  ],
+  "author": "Daniel Pouzemski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/podio/platformJS/issues"
+  },
+  "homepage": "https://github.com/podio/platformJS",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-karma": "^0.9.0",
+    "karma": "^0.12.24",
+    "karma-chrome-launcher": "^0.1.5",
+    "karma-jasmine": "^0.1.5",
+    "karma-phantomjs-launcher": "^0.1.4"
+  }
+}
