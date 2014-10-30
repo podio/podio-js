@@ -4,7 +4,7 @@
   "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test:phantom"
+    "test": "grunt"
   },
   "repository": {
     "type": "git",
@@ -23,9 +23,15 @@
     "grunt": "^0.4.5",
     "grunt-cli": "^0.1.13",
     "grunt-karma": "^0.9.0",
+    "jasmine-node": "^1.14.5",
     "karma": "^0.12.24",
     "karma-chrome-launcher": "^0.1.5",
     "karma-jasmine": "^0.1.5",
-    "karma-phantomjs-launcher": "^0.1.4"
+    "karma-phantomjs-launcher": "^0.1.4",
+    "sinon": "^1.11.1"
+  },
+  "dependencies": {
+    "URIjs": "^1.14.1",
+    "underscore": "^1.7.0"
   }
 }
