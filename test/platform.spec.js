@@ -68,6 +68,19 @@ describe('PlatformJS', function() {
       expect(instance.authObject.accessToken).toEqual(123);
     });
 
+    it('should still set the apiURL to default when a session store is provided', function() {
+      var authOptions = {
+        authType: 'client',
+        clientId: 123
+      };
+      var sessionStore = {
+        get: sinon.stub().returns({ accessToken: 123 })
+      };
+      var instance = new PlatformJS(authOptions, { sessionStore: sessionStore });
+
+      expect(instance.apiURL).toEqual('https://api.podio.com:443');
+    });
+
   });
 
   describe('getAuthorizationURL', function() {
@@ -144,7 +157,7 @@ describe('PlatformJS', function() {
       var expectedResponseData = {
         grant_type: 'authorization_code',
         code: authCode,
-        redirect_url: redirectURL
+        redirect_uri: redirectURL
       };
 
       PlatformJS.prototype.getAccessToken.apply(host, [authCode, redirectURL]);
@@ -220,11 +233,7 @@ describe('PlatformJS', function() {
   describe('utils._getDomain', function() {
 
     it('should extract the domain name from a URL', function() {
-      var host = {
-        apiURL: 'https://api.podio.com:443'
-      };
-
-      expect(PlatformJS.prototype.utils._getDomain.call(host)).toEqual('podio.com');
+      expect(PlatformJS.prototype.utils._getDomain('https://api.podio.com:443')).toEqual('podio.com');
     });
 
   });
@@ -266,10 +275,10 @@ describe('PlatformJS', function() {
     });
 
     it('should raise an exception if authentication failed', function() {
-      var errorMessage = 'Authentication for authorization_code failed';
+      var errorMessage = 'Authentication for authorization_code failed. Reason: 42';
 
       expect(function() {
-        PlatformJS.prototype._onAuthResponse(null, 'authorization_code', { ok: false });
+        PlatformJS.prototype._onAuthResponse(null, 'authorization_code', { ok: false, body: { error_description: '42' } });
       }).toThrow(new Error(errorMessage));
     });
 
