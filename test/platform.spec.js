@@ -59,12 +59,14 @@ describe('PlatformJS', function() {
         clientId: 123
       };
       var sessionStore = {
-        get: sinon.stub().returns({ accessToken: 123 })
+        get: sinon.spy(function(authType, callback) {
+          callback({ accessToken: 123 });
+        })
       };
       var instance = new PlatformJS(authOptions, { sessionStore: sessionStore });
 
       expect(sessionStore.get.calledOnce).toBe(true);
-      expect(sessionStore.get.calledWithExactly('client')).toBe(true);
+      expect(sessionStore.get.getCall(0).args[0]).toEqual('client');
       expect(instance.authObject.accessToken).toEqual(123);
     });
 
@@ -165,21 +167,6 @@ describe('PlatformJS', function() {
       expect(host._authenticate.getCall(0).args[0]).toEqual(expectedResponseData);
     });
 
-    it('should call the callback and onAccessTokenAcquired when auth request has finished', function() {
-      var responseData = { accessToken: 123 };
-      var host = {
-        authType: 'server',
-        _authenticate: function(requestData, callback) { callback(responseData); },
-        _onAccessTokenAcquired: sinon.stub()
-      };
-      var callback = sinon.stub();
-
-      PlatformJS.prototype.getAccessToken.apply(host, ['e123', 'https://www.myapp.com/oauth', callback]);
-      expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
-      expect(host._onAccessTokenAcquired.calledWithExactly(responseData)).toBe(true);
-      expect(callback.calledOnce).toBe(true);
-    });
-
     it('should throw an exception if authType is not server', function() {
       var host = {
         authType: 'client'
@@ -208,12 +195,12 @@ describe('PlatformJS', function() {
     it('should set an OAuth object correctly', function() {
       var host = {};
 
-      PlatformJS.prototype._onAccessTokenAcquired.call(host, responseData);
+      PlatformJS.prototype._onAccessTokenAcquired.call(host, responseData, function() {});
 
       expect(host.authObject).toEqual(oAuthObject);
     });
 
-    it('should save an authObject in the session store', function() {
+    it('should save an authObject in the session store and provide a callback', function() {
       var host = {
         sessionStore: {
           set: sinon.stub()
@@ -221,11 +208,21 @@ describe('PlatformJS', function() {
         authType: 'client'
       };
 
-      PlatformJS.prototype._onAccessTokenAcquired.call(host, responseData);
+      PlatformJS.prototype._onAccessTokenAcquired.call(host, responseData, function() {});
 
       expect(host.sessionStore.set.calledOnce).toBe(true);
       expect(host.sessionStore.set.getCall(0).args[0]).toEqual(oAuthObject);
       expect(host.sessionStore.set.getCall(0).args[1]).toEqual('client');
+      expect(_.isFunction(host.sessionStore.set.getCall(0).args[2])).toBe(true);
+    });
+
+    it('should call the callback if no session store is provided', function() {
+      var callback = sinon.stub();
+      var host = {};
+
+      PlatformJS.prototype._onAccessTokenAcquired.call(host, responseData, callback);
+
+      expect(callback.calledOnce).toBe(true);
     });
 
   });
