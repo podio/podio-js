@@ -36,4 +36,14 @@ router.get('/', function(req, res) {
   }
 });
 
+router.get('/user', function(req, res) {
+  if (platform.isAuthenticated()) {
+    platform.request('get', '/user/status', null, function(responseData) {
+      res.render('user', { profile: responseData.profile });
+    });
+  } else {
+    res.send(401);
+  }
+});
+
 module.exports = router;
