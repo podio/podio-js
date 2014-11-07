@@ -264,21 +264,205 @@ describe('PlatformJS', function() {
 
     it('should call the callback with the body if response is ok', function() {
       var callback = sinon.stub();
+      var url = 'https://api.podio.com:443/oauth/token';
 
-      PlatformJS.prototype._onAuthResponse(callback, 'authorization_code', { ok: true, body: 'body' });
+      PlatformJS.prototype._onAuthResponse(callback, 'authorization_code', url, { ok: true, body: 'body' });
 
       expect(callback.calledOnce).toBe(true);
       expect(callback.calledWithExactly('body')).toBe(true);
     });
 
     it('should raise an exception if authentication failed', function() {
+      var url = 'https://api.podio.com:443/oauth/token';
       var errorMessage = 'Authentication for authorization_code failed. Reason: 42';
+      var PodioAuthorizationError = function(message, status, url) {
+        this.message = message;
+        this.status = status;
+        this.url = url;
+        this.name = 'PodioAuthorizationError';
+      };
+      var res = {
+        ok: false,
+        body: { error_description: '42' },
+        status: 401
+      };
 
       expect(function() {
-        PlatformJS.prototype._onAuthResponse(null, 'authorization_code', { ok: false, body: { error_description: '42' } });
-      }).toThrow(new Error(errorMessage));
+        PlatformJS.prototype._onAuthResponse(null, 'authorization_code', url, res);
+      }).toThrow(new PodioAuthorizationError(errorMessage, 401, url));
     });
 
+  });
+
+  describe('_clearAuthentication', function() {
+
+    it('should remove the authObject and call sessionStore with an empty auth object', function() {
+      var host = {
+        authObject: {},
+        authType: 'client',
+        sessionStore: { set: sinon.stub() }
+      };
+
+      PlatformJS.prototype._clearAuthentication.call(host);
+
+      expect(host.authObject).toBeUndefined();
+      expect(host.sessionStore.set.calledOnce).toBe(true);
+      expect(host.sessionStore.set.calledWithExactly({}, 'client')).toBe(true);
+    });
+
+  });
+  
+  describe('_refreshToken', function() {
+    
+    it('calls authenticate with the refresh token', function() {
+      var host = {
+        authObject: {
+          refreshToken: 123
+        },
+        _authenticate: sinon.stub()
+      };
+      var expectedOptions = {
+        grant_type: 'refresh_token',
+        refresh_token: 123
+      };
+
+      PlatformJS.prototype._refreshToken.call(host);
+
+      expect(host._authenticate.calledOnce).toBe(true);
+      expect(host._authenticate.getCall(0).args[0]).toEqual(expectedOptions);
+    });
+
+    it('calls _onAccessTokenAcquired when authentication is done', function() {
+      var callbackFn = function() {};
+      var responseData = { accessToken: 123 };
+      var host = {
+        authObject: {
+          refreshToken: 123
+        },
+        _authenticate: function(requestData, callback) {
+          callback(responseData);
+        },
+        _onAccessTokenAcquired: sinon.stub()
+      };
+
+      PlatformJS.prototype._refreshToken.call(host, callbackFn);
+      
+      expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
+      expect(host._onAccessTokenAcquired.calledWithExactly(responseData, callbackFn)).toBe(true);
+    });
+    
+  });
+
+  describe('_addRequestData', function() {
+
+    it('should attach data as query for a get request and return the request object', function() {
+      var newReq = {};
+      var data = { authToken: 123 };
+      var req = {
+        query: sinon.spy(function(data) {
+          return newReq;
+        })
+      };
+
+      var result = PlatformJS.prototype._addRequestData(data, 'get', req);
+
+      expect(req.query.calledOnce).toBe(true);
+      expect(req.query.calledWithExactly(data)).toBe(true);
+      expect(result).toEqual(newReq);
+    });
+
+  });
+  
+  describe('_addHeaders', function() {
+    
+    it('should set the auth header on the request object and return it', function() {
+      var newReq = {};
+      var host = {
+        authObject: {
+          accessToken: 123
+        }
+      };
+      var req = {
+        set: sinon.stub().returns(newReq)
+      };
+
+      var result = PlatformJS.prototype._addHeaders.call(host, req);
+
+      expect(req.set.calledOnce).toBe(true);
+      expect(req.set.calledWithExactly('Authorization', 'OAuth2 123')).toBe(true);
+      expect(result).toEqual(newReq);
+    });
+    
+  });
+  
+  describe('_onResponse', function() {
+    
+    it('should call resolve and callback if response was a success', function() {
+      var options = {
+        resolve: sinon.stub(),
+        reject: sinon.stub(),
+        callback: sinon.stub()
+      };
+      var res = {
+        body: {},
+        ok: true
+      };
+
+      PlatformJS.prototype._onResponse(options, res)
+
+      expect(options.resolve.calledOnce).toBe(true);
+      expect(options.resolve.calledWithExactly(res.body)).toBe(true);
+      expect(options.callback.calledOnce).toBe(true);
+      expect(options.callback.calledWithExactly(res.body, res)).toBe(true);
+    });
+
+    it('should call reject and handle the error if response was a failure', function() {
+      var host = {
+        _handleTransportError: sinon.stub()
+      };
+      var options = {
+        reject: sinon.stub()
+      };
+      var res = {
+        ok: false,
+        body: { error_description: 'Error occured' }
+      };
+
+      PlatformJS.prototype._onResponse.call(host, options, res);
+
+      expect(options.reject.calledOnce).toBe(true);
+      expect(options.reject.calledWithExactly(res.body.error_description)).toBe(true);
+      expect(host._handleTransportError.calledOnce).toBe(true);
+      expect(host._handleTransportError.calledWithExactly(options, res)).toBe(true);
+    });
+    
+  });
+  
+  describe('_getPromise', function() {
+    
+    it('should substitute resolve and reject functions with previous requests promise in case a token had to be refreshed', function() {
+      var options = {
+        resolve: function() {},
+        reject: function() {}
+      };
+      var callback = sinon.stub();
+
+      PlatformJS.prototype._getPromise(options, callback);
+
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.calledWithExactly(options.resolve, options.reject)).toBe(true);
+    });
+
+    it('should return a new promise if no resolve and reject functions are injected', function() {
+      var callback = sinon.stub();
+
+      var promise = PlatformJS.prototype._getPromise(null, callback);
+
+      expect(_.isFunction(promise.then)).toBe(true);
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.getCall(0).args.length).toEqual(2);
+    });
+    
   });
 
 });
