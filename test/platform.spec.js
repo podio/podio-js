@@ -1,7 +1,7 @@
 describe('PlatformJS', function() {
 
   var PlatformJS = require('../lib/PlatformJS');
-  var _ = require('underscore');
+  var _ = require('lodash');
   var sinon = require('sinon');
   
   describe('constructor', function() {
@@ -463,6 +463,96 @@ describe('PlatformJS', function() {
       expect(callback.getCall(0).args.length).toEqual(2);
     });
     
+  });
+
+  describe('request', function() {
+
+    var request, host;
+
+    beforeEach(function() {
+      request = {
+        get: sinon.spy(function() { return request; }),
+        end: sinon.stub()
+      };
+      host = {
+        _getRequestObject: sinon.stub().returns(request),
+        _addRequestData: sinon.spy(function(data, method, req) {
+          req.requestData = {};
+
+          return req;
+        }),
+        _addHeaders: sinon.spy(function(req) {
+          req.headers = {};
+
+          return req;
+        }),
+        _getPromise: sinon.stub().callsArg(1),
+        _onResponse: function() {},
+        isAuthenticated: sinon.stub().returns(true),
+        apiURL: 'https://api.podio.com:443'
+      }
+    });
+
+    afterEach(function() {
+      host = request = null;
+    });
+
+    it('should call the correct method on the request object with a correct URL', function() {
+      var url = 'https://api.podio.com:443/test';
+
+      PlatformJS.prototype.request.call(host, 'GET', '/test', null, function(responseData) {});
+
+      expect(request.get.calledOnce).toBe(true);
+      expect(request.get.calledWithExactly(url)).toBe(true);
+    });
+    
+    it('should throw an exception if authentication has not been performed before', function() {
+      var PodioForbiddenError = function(message, status, url) {
+        this.message = message;
+        this.status = status;
+        this.url = url;
+        this.name = 'PodioForbiddenError';
+      };
+
+      host.isAuthenticated = sinon.stub().returns(false);
+
+      expect(function() {
+        PlatformJS.prototype.request.call(host, 'get', '/test', null, function(responseData) {});
+      }).toThrow(new PodioForbiddenError('Authentication has not been performed'));
+    });
+
+    it('should call addRequestData and addHeaders with the request object and let them augment it', function() {
+      var data = { data: true };
+
+      PlatformJS.prototype.request.call(host, 'GET', '/test', data, function(responseData) {});
+
+      expect(host._addRequestData.calledOnce).toBe(true);
+      expect(host._addRequestData.calledWith(data, 'get')).toBe(true);
+      expect(host._addHeaders.calledOnce).toBe(true);
+      expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
+    });
+
+    it('should pass resolve, reject and the callback into onResponse', function() {
+      var resolve = function() {};
+      var reject = function() {};
+      var callback = function() {};
+
+      _.extend(host, {
+        _onResponse: sinon.stub(),
+        _getPromise: sinon.stub().callsArgWith(1, resolve, reject)
+      });
+
+      request.end = sinon.stub().callsArg(0);
+
+      PlatformJS.prototype.request.call(host, 'GET', '/test', null, callback);
+
+      expect(request.end.calledOnce).toBe(true);
+      expect(host._onResponse.calledOnce).toBe(true);
+      expect(host._onResponse.getCall(0).args[0].resolve).toEqual(resolve);
+      expect(host._onResponse.getCall(0).args[0].reject).toEqual(reject);
+      expect(host._onResponse.getCall(0).args[0].callback).toEqual(callback);
+    });
+
   });
 
 });
