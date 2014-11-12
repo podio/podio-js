@@ -2,7 +2,7 @@
   "name": "PlatformJS",
   "version": "1.0.0",
   "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
-  "main": "index.js",
+  "main": "lib/PlatformJS",
   "scripts": {
     "test": "grunt"
   },
