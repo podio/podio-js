@@ -1,6 +1,6 @@
 {
   "name": "PlatformJS",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
   "main": "index.js",
   "scripts": {
