@@ -670,4 +670,100 @@ describe('PlatformJS', function() {
 
   });
 
+  describe('_handleTransportError', function() {
+
+    var PodioAuthorizationError = function(message, status, url) {
+      this.message = message;
+      this.status = status;
+      this.url = url;
+      this.name = 'PodioAuthorizationError';
+    };
+
+    it('should try to refresh token when the expire error is triggered', function() {
+      var host = {
+        _refreshToken: sinon.stub().callsArg(0),
+        request: sinon.stub(),
+        authObject: {
+          refreshToken: 'e123'
+        }
+      };
+      var options = {
+        resolve: function() {},
+        reject: function() {},
+        callback: function() {},
+        requestParams: {
+          method: 'GET',
+          path: '/tasks',
+          data: {}
+        }
+      };
+      var response = {
+        status: 401,
+        body: {
+          error_description: 'expired_token'
+        }
+      };
+
+      PlatformJS.prototype._handleTransportError.call(host, options, response);
+
+      expect(host._refreshToken.calledOnce).toBe(true);
+      expect(_.isFunction(host._refreshToken.getCall(0).args[0])).toBe(true);
+
+      // verify bound arguments
+      expect(host.request.getCall(0).args[0]).toEqual('GET');
+      expect(host.request.getCall(0).args[1]).toEqual('/tasks');
+      expect(host.request.getCall(0).args[2]).toEqual({});
+      expect(host.request.getCall(0).args[3]).toEqual(options.callback);
+      expect(host.request.getCall(0).args[4]).toEqual({ resolve: options.resolve, reject: options.reject });
+    });
+    
+    it('should throw a PodioAuthorizationError if the 401 is not an expired token error and clear the current auth data', function() {
+      var host = {
+        _clearAuthentication: sinon.stub()
+      };
+      var response = {
+        status: 401,
+        body: {
+          error_description: 'invalid_grant'
+        }
+      };
+      var options = {
+        requestParams: {
+          url: '/tasks'
+        }
+      };
+
+      expect(function() {
+        PlatformJS.prototype._handleTransportError.call(host, options, response);
+      }).toThrow(new PodioAuthorizationError(response.body, 401, '/tasks'));
+      expect(host._clearAuthentication.calledOnce).toBe(true);
+    });
+    
+    it('should throw a PodioAuthorizationError if the 401 is an invalid token error but the refresh token is missing', function() {
+      var host = {
+        _clearAuthentication: sinon.stub(),
+        authObject: {
+          authToken: 123
+        }
+      };
+      var response = {
+        status: 401,
+        body: {
+          error: 'invalid_token'
+        }
+      };
+      var options = {
+        requestParams: {
+          url: '/tasks'
+        }
+      };
+
+      expect(function() {
+        PlatformJS.prototype._handleTransportError.call(host, options, response);
+      }).toThrow(new PodioAuthorizationError(response.body, 401, '/tasks'));
+      expect(host._clearAuthentication.calledOnce).toBe(true);
+    });
+
+  });
+
 });
