@@ -406,6 +406,36 @@ describe('PlatformJS', function() {
     
   });
   
+  describe('_addCORS', function() {
+    
+    it('should enable cookies for cross domain requests', function() {
+      var host = {
+        authType: 'client'
+      };
+      var req = {
+        withCredentials: sinon.spy(function() {
+          return req;
+        })
+      };
+
+      expect(PlatformJS.prototype._addCORS.call(host, req)).toEqual(req);
+      expect(req.withCredentials.calledOnce).toBe(true);
+    });
+
+    it('should not enable cookies if no client auth is used', function() {
+      var host = {
+        authType: 'server'
+      };
+      var req = {
+        withCredentials: sinon.stub()
+      };
+
+      expect(PlatformJS.prototype._addCORS.call(host, req)).toEqual(req);
+      expect(req.withCredentials.called).toBe(false);
+    });
+    
+  });
+  
   describe('_onResponse', function() {
     
     it('should call resolve and callback if response was a success', function() {
@@ -497,6 +527,11 @@ describe('PlatformJS', function() {
 
           return req;
         }),
+        _addCORS: sinon.spy(function(req) {
+          req.cors = {};
+
+          return req;
+        }),
         _getPromise: sinon.stub().callsArg(1),
         _onResponse: function() {},
         isAuthenticated: sinon.stub().returns(true),
@@ -532,7 +567,7 @@ describe('PlatformJS', function() {
       }).toThrow(new PodioForbiddenError('Authentication has not been performed'));
     });
 
-    it('should call addRequestData and addHeaders with the request object and let them augment it', function() {
+    it('should call addRequestData, addHeaders, addCORS with the request object and let them augment it', function() {
       var data = { data: true };
 
       PlatformJS.prototype.request.call(host, 'GET', '/test', data, function(responseData) {});
@@ -540,6 +575,7 @@ describe('PlatformJS', function() {
       expect(host._addRequestData.calledOnce).toBe(true);
       expect(host._addRequestData.calledWith(data, 'get')).toBe(true);
       expect(host._addHeaders.calledOnce).toBe(true);
+      expect(host._addCORS.calledOnce).toBe(true);
       expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
     });
 
