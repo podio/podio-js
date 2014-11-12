@@ -138,10 +138,13 @@ describe('PlatformJS', function() {
       expect(PlatformJS.prototype.isAuthenticated.call(host)).toBe(true);
     });
 
-    it('should return false if no authObject exists', function() {
-      var host = {};
+    it('should call _hasClientSideRedirect and return false if no authObject exists', function() {
+      var host = {
+        _hasClientSideRedirect: sinon.stub().returns(false)
+      };
 
       expect(PlatformJS.prototype.isAuthenticated.call(host)).toBe(false);
+      expect(host._hasClientSideRedirect.calledOnce).toBe(true);
     });
 
   });
@@ -223,6 +226,14 @@ describe('PlatformJS', function() {
       PlatformJS.prototype._onAccessTokenAcquired.call(host, responseData, callback);
 
       expect(callback.calledOnce).toBe(true);
+    });
+
+    it('should not fail trying to call the callback if none is provided', function() {
+      var host = {};
+
+      PlatformJS.prototype._onAccessTokenAcquired.call(host, responseData);
+
+      expect(true).toBe(true);
     });
 
   });
@@ -551,6 +562,74 @@ describe('PlatformJS', function() {
       expect(host._onResponse.getCall(0).args[0].resolve).toEqual(resolve);
       expect(host._onResponse.getCall(0).args[0].reject).toEqual(reject);
       expect(host._onResponse.getCall(0).args[0].callback).toEqual(callback);
+    });
+
+  });
+
+  describe('_getHashParams', function() {
+
+    it('should extract the auth token from the hash fragment correctly', function() {
+      var host = {
+        _getHash: sinon.stub().returns('#access_token=123&token_type=bearer&expires_in=12345&refresh_token=e443')
+      };
+      var expectedParams = {
+        access_token: '123',
+        token_type: 'bearer',
+        expires_in: '12345',
+        refresh_token: 'e443'
+      };
+      var params = PlatformJS.prototype.utils._getHashParams.call(host);
+
+      expect(params).toEqual(expectedParams);
+    });
+
+    it('should return an empty object when no hash fragment is present', function() {
+      var host = {
+        _getHash: sinon.stub().returns('')
+      };
+      var params = PlatformJS.prototype.utils._getHashParams.call(host);
+
+      expect(params).toEqual({});
+    });
+
+  });
+  
+  describe('_hasClientSideRedirect', function() {
+
+    it('should return false for non client auth', function() {
+      var host = {
+        authType: 'server'
+      };
+
+      expect(PlatformJS.prototype._hasClientSideRedirect.call(host)).toBe(false);
+    });
+    
+    it('should save access token if it is present in the hash fragment and return true', function() {
+      var params = { access_token: 123 };
+      var host = {
+        authType: 'client',
+        utils: {
+          _getHashParams: sinon.stub().returns(params)
+        },
+        _onAccessTokenAcquired: sinon.stub()
+      };
+
+      expect(PlatformJS.prototype._hasClientSideRedirect.call(host)).toBe(true);
+      expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
+      expect(host._onAccessTokenAcquired.getCall(0).args[0]).toEqual(params);
+    });
+
+    it('should not attempt to save the token and return false if no hash parameters are present in the client auth', function() {
+      var host = {
+        authType: 'client',
+        utils: {
+          _getHashParams: sinon.stub().returns({})
+        },
+        _onAccessTokenAcquired: sinon.stub()
+      };
+
+      expect(PlatformJS.prototype._hasClientSideRedirect.call(host)).toBe(false);
+      expect(host._onAccessTokenAcquired.called).toBe(false);
     });
 
   });
