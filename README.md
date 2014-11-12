@@ -15,3 +15,7 @@ Node:
 ```sh
 $ jasmine-node test
 ```
+
+## Documentation
+
+You will find a detailed documentation at [http://podio.github.io/platformJS/](http://podio.github.io/platformJS/)
