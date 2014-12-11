@@ -1,5 +1,5 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.PlatformJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var VERSION = '0.0.1';
+var VERSION = '1.1.0';
 
 var _ = require('lodash');
 
@@ -38,7 +38,7 @@ PlatformJS.prototype = _.extend({}, AuthLib, TransportLib);
 
 module.exports = PlatformJS;
 
-},{"./auth":4,"./transport":5,"./utils":6,"lodash":12}],2:[function(require,module,exports){
+},{"./auth":4,"./transport":5,"./utils":6,"lodash":13}],2:[function(require,module,exports){
 var _ = require('lodash');
 
 var errors = {
@@ -112,7 +112,7 @@ _.each(errors, function(err, name) {
 });
 
 module.exports = errors;
-},{"lodash":12}],3:[function(require,module,exports){
+},{"lodash":13}],3:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function(accessToken, refreshToken, expiresIn, ref) {
@@ -133,7 +133,7 @@ module.exports = function(accessToken, refreshToken, expiresIn, ref) {
   this.expiresIn = expiresIn;
   this.ref = ref;
 };
-},{"lodash":12}],4:[function(require,module,exports){
+},{"lodash":13}],4:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -277,7 +277,7 @@ module.exports = {
     }.bind(this));
   }
 }
-},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":6,"URIjs":9,"lodash":12,"superagent":13}],5:[function(require,module,exports){
+},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":6,"URIjs":9,"lodash":13,"superagent":14}],5:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -433,7 +433,7 @@ module.exports = {
     }.bind(this));
   }
 };
-},{"./PodioErrors":2,"./auth":4,"URIjs":9,"es6-promise":11,"lodash":12,"superagent":13}],6:[function(require,module,exports){
+},{"./PodioErrors":2,"./auth":4,"URIjs":9,"es6-promise":12,"lodash":13,"superagent":14}],6:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 
@@ -476,7 +476,7 @@ module.exports = {
     return new URI(apiURL).domain();
   }
 };
-},{"URIjs":9,"lodash":12}],7:[function(require,module,exports){
+},{"URIjs":9,"lodash":13}],7:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  * IPv6 Support
@@ -3426,6 +3426,94 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],11:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canMutationObserver = typeof window !== 'undefined'
+    && window.MutationObserver;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    var queue = [];
+
+    if (canMutationObserver) {
+        var hiddenDiv = document.createElement("div");
+        var observer = new MutationObserver(function () {
+            var queueList = queue.slice();
+            queue.length = 0;
+            queueList.forEach(function (fn) {
+                fn();
+            });
+        });
+
+        observer.observe(hiddenDiv, { attributes: true });
+
+        return function nextTick(fn) {
+            if (!queue.length) {
+                hiddenDiv.setAttribute('yes', 'no');
+            }
+            queue.push(fn);
+        };
+    }
+
+    if (canPost) {
+        window.addEventListener('message', function (ev) {
+            var source = ev.source;
+            if ((source === window || source === null) && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}],12:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -4394,7 +4482,7 @@ module.exports = {
     }
 }).call(this);
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":16}],12:[function(require,module,exports){
+},{"_process":11}],13:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -11183,7 +11271,7 @@ module.exports = {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -12261,7 +12349,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":14,"reduce":15}],14:[function(require,module,exports){
+},{"emitter":15,"reduce":16}],15:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -12427,7 +12515,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -12452,93 +12540,5 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],16:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canMutationObserver = typeof window !== 'undefined'
-    && window.MutationObserver;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
-    }
-
-    var queue = [];
-
-    if (canMutationObserver) {
-        var hiddenDiv = document.createElement("div");
-        var observer = new MutationObserver(function () {
-            var queueList = queue.slice();
-            queue.length = 0;
-            queueList.forEach(function (fn) {
-                fn();
-            });
-        });
-
-        observer.observe(hiddenDiv, { attributes: true });
-
-        return function nextTick(fn) {
-            if (!queue.length) {
-                hiddenDiv.setAttribute('yes', 'no');
-            }
-            queue.push(fn);
-        };
-    }
-
-    if (canPost) {
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
-    }
-
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-
 },{}]},{},[1])(1)
 });
