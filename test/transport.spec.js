@@ -75,6 +75,36 @@ describe('transport', function() {
     });
 
   });
+  
+  describe('_setOptions', function() {
+    
+    it('should set the application/x-www-form-urlencoded content type', function() {
+      var req = {
+        type: sinon.stub()
+      };
+      var options = {
+        type: 'form'
+      };
+
+      transport._setOptions(options, req);
+
+      expect(req.type.calledOnce).toBe(true);
+      expect(req.type.calledWithExactly('form')).toBe(true);
+    });
+
+    it('should not call type on the request object if no type option is passed', function() {
+      var req = {
+        type: sinon.stub()
+      };
+      var options = {};
+
+      transport._setOptions(options, req);
+
+      expect(req.type.calledOnce).toBe(false);
+
+    });
+    
+  });
 
   describe('_handleTransportError', function() {
 
@@ -281,6 +311,11 @@ describe('transport', function() {
 
           return req;
         }),
+        _setOptions: sinon.spy(function(options, req) {
+          req.options = {};
+
+          return req;
+        }),
         _getPromise: sinon.stub().callsArg(1),
         _onResponse: function() {},
         apiURL: 'https://api.podio.com:443'
@@ -315,7 +350,7 @@ describe('transport', function() {
       }).toThrow(new PodioForbiddenError('Authentication has not been performed'));
     });
 
-    it('should call addRequestData, addHeaders, addCORS with the request object and let them augment it', function() {
+    it('should call addRequestData, addHeaders, addCORS, setOptions with the request object and let them augment it', function() {
       var data = { data: true };
 
       transport.request.call(host, 'GET', '/test', data, function(responseData) {});
@@ -324,6 +359,7 @@ describe('transport', function() {
       expect(host._addRequestData.calledWith(data, 'get')).toBe(true);
       expect(host._addHeaders.calledOnce).toBe(true);
       expect(host._addCORS.calledOnce).toBe(true);
+      expect(host._setOptions.calledOnce).toBe(true);
       expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
     });
 
