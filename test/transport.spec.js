@@ -120,7 +120,7 @@ describe('transport', function() {
         _refreshToken: sinon.stub().callsArg(0)
       };
       var host = {
-        request: sinon.stub(),
+        _onTokenRefreshed: sinon.stub(),
         authObject: {
           refreshToken: 'e123'
         },
@@ -133,7 +133,8 @@ describe('transport', function() {
         requestParams: {
           method: 'GET',
           path: '/tasks',
-          data: {}
+          data: {},
+          requestType: 'generic'
         }
       };
       var response = {
@@ -149,11 +150,8 @@ describe('transport', function() {
       expect(_.isFunction(auth._refreshToken.getCall(0).args[0])).toBe(true);
 
       // verify bound arguments
-      expect(host.request.getCall(0).args[0]).toEqual('GET');
-      expect(host.request.getCall(0).args[1]).toEqual('/tasks');
-      expect(host.request.getCall(0).args[2]).toEqual({});
-      expect(host.request.getCall(0).args[3]).toEqual(options.callback);
-      expect(host.request.getCall(0).args[4]).toEqual({ resolve: options.resolve, reject: options.reject });
+      expect(host._onTokenRefreshed.getCall(0).args[0]).toEqual(options.requestParams);
+      expect(host._onTokenRefreshed.getCall(0).args[1]).toEqual(options);
     });
 
     it('should throw a PodioAuthorizationError if the 401 is not an expired token error and clear the current auth data', function() {
@@ -386,6 +384,172 @@ describe('transport', function() {
 
   });
 
+  describe('uploadFile', function() {
 
+    function getFullMocks() {
+      var host;
+      var req = {
+        end: sinon.stub()
+      };
+      var field = { field: sinon.stub().returns(req) };
+      var attach = { attach: sinon.stub().returns(field)};
+
+      req.post = sinon.stub().returns(attach);
+
+      host = {
+        _getRequestObject: sinon.stub().returns(req),
+        _addHeaders: sinon.stub().returns(req),
+        _addCORS: sinon.stub().returns(req),
+        _getPromise: sinon.stub(),
+        apiURL: 'https://api.podio.com:443',
+        authType: 'server'
+      };
+
+      return {
+        host: host,
+        req: req,
+        attach: attach,
+        field: field
+      };
+    }
+
+    it('should raise an exception when called on the client', function() {
+      var host = {
+        authType: 'client',
+        apiURL: 'https://api.podio.com:443'
+      };
+
+      expect(function() {
+        transport.uploadFile.call(host);
+      }).toThrow(new Error('File uploads are only supported on the server right now.'));
+    });
+
+    it('should assemble the url correctly', function() {
+      var mocks = getFullMocks();
+
+      transport.uploadFile.call(mocks.host);
+
+      expect(mocks.req.post.calledOnce).toBe(true);
+      expect(mocks.req.post.calledWithExactly('https://api.podio.com:443/file'));
+    });
+
+    it('it should assemble the body correctly', function() {
+      var mocks = getFullMocks();
+      var filePath = 'tmp/image.png';
+      var fileName = 'image.png';
+
+      transport.uploadFile.call(mocks.host, filePath, fileName);
+
+      expect(mocks.attach.attach.calledOnce).toBe(true);
+      expect(mocks.attach.attach.calledWithExactly('source', filePath)).toBe(true);
+      expect(mocks.field.field.calledOnce).toBe(true);
+      expect(mocks.field.field.calledWithExactly('filename', fileName)).toBe(true);
+    });
+
+    it('should add auth and CORS headers to the request', function() {
+      var mocks = getFullMocks();
+
+      transport.uploadFile.call(mocks.host);
+
+      expect(mocks.host._addHeaders.calledOnce).toBe(true);
+      expect(mocks.host._addHeaders.calledWithExactly(mocks.req)).toBe(true);
+      expect(mocks.host._addCORS.calledOnce).toBe(true);
+      expect(mocks.host._addCORS.calledWithExactly(mocks.req)).toBe(true);
+    });
+    
+    it('should receive a promise, execute the request and call the response handler with options', function() {
+      var mocks = getFullMocks();
+      var resolve = function() {};
+      var reject = function() {};
+      var callback = function() {};
+      var filePath = 'tmp/image.png';
+      var fileName = 'image.png';
+      var options = {};
+      var requestOptions = {
+        resolve: resolve,
+        reject: reject,
+        callback: callback,
+        requestParams: {
+          requestType: 'file',
+          filePath: filePath,
+          fileName: fileName
+        }
+      };
+
+      mocks.req.end = sinon.stub().callsArg(0);
+      mocks.host._getPromise = sinon.stub().callsArgWith(1, resolve, reject);
+      mocks.host._onResponse = sinon.stub();
+
+      transport.uploadFile.call(mocks.host, filePath, fileName, callback, options);
+
+      expect(mocks.host._getPromise.calledOnce).toBe(true);
+      expect(mocks.host._getPromise.getCall(0).args[0]).toBe(options);
+      expect(_.isFunction(mocks.host._getPromise.getCall(0).args[1])).toBe(true);
+      expect(mocks.req.end.calledOnce).toBe(true);
+      expect(mocks.host._onResponse.calledOnce).toBe(true);
+      expect(mocks.host._onResponse.calledWithExactly(requestOptions)).toBe(true);
+    });
+
+  });
+
+  describe('_onTokenRefreshed', function() {
+
+    function getHost() {
+      return {
+        request: sinon.stub(),
+        uploadFile: sinon.stub()
+      };
+    }
+
+    function getOptions() {
+      return {
+        callback: function() {},
+        resolve: function() {},
+        reject: function() {}
+      };
+    }
+
+    it('should repeat a failed generic request with old parameters passed as options', function() {
+      var host = getHost();
+      var request = {
+        requestType: 'generic',
+        method: 'GET',
+        path: '/tasks',
+        data: {}
+      };
+      var options = getOptions();
+      var resolveRejectOptions = {
+        resolve: options.resolve,
+        reject: options.reject
+      };
+
+      transport._onTokenRefreshed.call(host, request, options);
+
+      expect(host.request.calledOnce).toBe(true);
+      expect(host.request.calledWithExactly(request.method, request.path, request.data, options.callback, resolveRejectOptions));
+      expect(host.uploadFile.called).toBe(false);
+    });
+
+    it('should repeat a file upload with old parameters passed as options', function() {
+      var host = getHost();
+      var options = getOptions();
+      var request = {
+        requestType: 'file',
+        filePath: 'temp/image.png',
+        fileName: 'image.png'
+      };
+      var resolveRejectOptions = {
+        resolve: options.resolve,
+        reject: options.reject
+      };
+
+      transport._onTokenRefreshed.call(host, request, options);
+
+      expect(host.uploadFile.calledOnce).toBe(true);
+      expect(host.uploadFile.calledWithExactly(request.filePath, request.fileName, options.callback, resolveRejectOptions)).toBe(true);
+      expect(host.request.called).toBe(false);
+    });
+
+  });
 
 });
