@@ -2,6 +2,9 @@ var express = require('express');
 var router = express.Router();
 var PlatformJS = require('../../../lib/PlatformJS');
 var sessionStore = require('../sessionStore');
+var Busboy = require("busboy");
+var temp = require('temp');
+var fs = require('fs');
 
 var clientId = '';      // your clientId here
 var clientSecret = ''   // your clientSecret here;
@@ -44,6 +47,38 @@ router.get('/user', function(req, res) {
   } else {
     res.send(401);
   }
+});
+
+router.get('/upload', function(req, res) {
+  res.render('upload');
+});
+
+router.post('/upload', function(req, res) {
+  var busboy = new Busboy({ headers: req.headers });
+
+  if (!platform.isAuthenticated()) {
+    res.send(401);
+    return;
+  }
+
+  busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+    var dir = temp.mkdirSync();
+    var filePath = dir + '/' + filename;
+
+    fs.writeFileSync(filePath, '');
+
+    file.on('data', function(data) {
+      fs.appendFileSync(filePath, data);
+    });
+
+    file.on('end', function() {
+      platform.uploadFile(filePath, filename, function(body, response) {
+        res.render('upload_success', { fileId: body.file_id })
+      });
+    });
+  });
+
+  req.pipe(busboy);
 });
 
 module.exports = router;
