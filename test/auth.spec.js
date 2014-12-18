@@ -105,6 +105,45 @@ describe('auth', function() {
 
   });
 
+  describe('authenticateWithCredentials', function() {
+
+    it('should call authenticate with credentials and the correct grant type', function() {
+      var host = {
+        _authenticate: sinon.stub()
+      };
+      var username = 'user@podio.com';
+      var password = 'password';
+      var expected = {
+        grant_type: 'password',
+        username: username,
+        password: password
+      };
+
+      auth.authenticateWithCredentials.call(host, username, password);
+
+      expect(host._authenticate.calledOnce).toBe(true);
+      expect(host._authenticate.getCall(0).args[0]).toEqual(expected);
+      expect(_.isFunction(host._authenticate.getCall(0).args[1])).toBe(true);
+    });
+
+    it('should call onAccessTokenAcquired with correct parameters when authentication succeeds', function() {
+      var responseData = {};
+      var host = {
+        _authenticate: sinon.stub().callsArgWith(1, responseData),
+        _onAccessTokenAcquired: sinon.stub()
+      };
+      var username = 'user@podio.com';
+      var password = 'password';
+      var callback = function() {};
+
+      auth.authenticateWithCredentials.call(host, username, password, callback);
+
+      expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
+      expect(host._onAccessTokenAcquired.calledWithExactly(responseData, callback)).toBe(true);
+    });
+
+  });
+
   describe('_hasClientSideRedirect', function() {
 
     it('should return false for non client auth', function() {
