@@ -1,5 +1,5 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.PlatformJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var VERSION = '1.1.0';
+var VERSION = '1.1.3';
 
 var _ = require('lodash');
 
@@ -23,9 +23,11 @@ var PlatformJS = function(authOptions, options) {
   if (!_.isUndefined(options)) {
     if (!_.isUndefined(options.sessionStore)) {
       this.sessionStore = options.sessionStore;
-      this.sessionStore.get(this.authType, function(podioOAuth) {
-        this.authObject = podioOAuth;
-      }.bind(this));
+      this._getAuthFromStore();
+    }
+
+    if (_.isFunction(options.onTokenWillRefresh)) {
+      this.onTokenWillRefresh = options.onTokenWillRefresh;
     }
 
     if (!_.isUndefined(options.apiURL)) {
@@ -38,7 +40,7 @@ PlatformJS.prototype = _.extend({}, AuthLib, TransportLib);
 
 module.exports = PlatformJS;
 
-},{"./auth":4,"./transport":5,"./utils":6,"lodash":13}],2:[function(require,module,exports){
+},{"./auth":4,"./transport":5,"./utils":6,"lodash":12}],2:[function(require,module,exports){
 var _ = require('lodash');
 
 var errors = {
@@ -112,7 +114,7 @@ _.each(errors, function(err, name) {
 });
 
 module.exports = errors;
-},{"lodash":13}],3:[function(require,module,exports){
+},{"lodash":12}],3:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function(accessToken, refreshToken, expiresIn, ref) {
@@ -133,7 +135,7 @@ module.exports = function(accessToken, refreshToken, expiresIn, ref) {
   this.expiresIn = expiresIn;
   this.ref = ref;
 };
-},{"lodash":13}],4:[function(require,module,exports){
+},{"lodash":12}],4:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -204,7 +206,25 @@ module.exports = {
   },
 
   authenticateWithCredentials: function(username, password, callback) {
+    var requestData = {
+      grant_type: 'password',
+      username: username,
+      password: password
+    };
 
+    this._authenticate(requestData, function(responseData) {
+      this._onAccessTokenAcquired(responseData, callback);
+    }.bind(this));
+  },
+
+  refreshAuthFromStore: function() {
+    this._getAuthFromStore();
+  },
+
+  _getAuthFromStore: function() {
+    this.sessionStore.get(this.authType, function(podioOAuth) {
+      this.authObject = podioOAuth;
+    }.bind(this));
   },
 
   _hasClientSideRedirect: function() {
@@ -269,15 +289,28 @@ module.exports = {
   },
 
   _refreshToken: function(callback) {
+    var refreshToken = this.authObject.refreshToken;
+
+    this._clearAuthentication();
+
+    // no support for client-side token refresh in the API
+    if (this.authType === 'client') {
+      if (_.isFunction(this.onTokenWillRefresh)) {
+        this.onTokenWillRefresh(callback);
+      }
+
+      return;
+    }
+
     this._authenticate({
       grant_type: 'refresh_token',
-      refresh_token: this.authObject.refreshToken
+      refresh_token: refreshToken
     }, function(responseData) {
       this._onAccessTokenAcquired(responseData, callback);
     }.bind(this));
   }
-}
-},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":6,"URIjs":9,"lodash":13,"superagent":14}],5:[function(require,module,exports){
+};
+},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":6,"URIjs":9,"lodash":12,"superagent":13}],5:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -326,9 +359,26 @@ module.exports = {
     return req;
   },
 
+  _setOptions: function(options, req) {
+    if (options.type && options.type === 'form') {
+      req.type('form');
+    }
+
+    return req;
+  },
+  
+  _onTokenRefreshed: function(request, options) {
+    var resolveRejectOptions = _.pick(options, 'resolve', 'reject');
+
+    if (request.requestType === 'generic') {
+      this.request(request.method, request.path, request.data, options.callback, resolveRejectOptions);
+    } else if (request.requestType === 'file') {
+      this.uploadFile(request.filePath, request.fileName, options.callback, resolveRejectOptions);
+    }
+  },
+
   _handleTransportError: function(options, response) {
     var request = options.requestParams;
-    var resolveRejectOptions;
 
     switch(response.status) {
       case 400:
@@ -337,9 +387,7 @@ module.exports = {
       case 401:
         if (response.body.error === 'invalid_token' || response.body.error_description === 'expired_token') {
           if (this.authObject.refreshToken) {
-            resolveRejectOptions = _.pick(options, 'resolve', 'reject');
-
-            this._getAuth()._refreshToken(this.request.bind(this, request.method, request.path, request.data, options.callback, resolveRejectOptions));
+            this._getAuth()._refreshToken(this._onTokenRefreshed.bind(this, request, options));
           } else {
             this._getAuth()._clearAuthentication();
             throw new PodioErrors.PodioAuthorizationError(response.body, response.status, request.url);
@@ -414,7 +462,7 @@ module.exports = {
     method = method.toLowerCase();
 
     req = request[method](url);
-    req = _.compose(this._addRequestData.bind(this, data, method), this._addHeaders.bind(this), this._addCORS.bind(this))(req);
+    req = _.compose(this._addRequestData.bind(this, data, method), this._addHeaders.bind(this), this._addCORS.bind(this), this._setOptions.bind(this, options || {}))(req);
 
     return this._getPromise(options, function(resolve, reject) {
       var options = {
@@ -422,6 +470,7 @@ module.exports = {
         reject: reject,
         callback: callback || null,
         requestParams: {
+          requestType: 'generic',
           url: url,
           path: path,
           data: data,
@@ -431,9 +480,37 @@ module.exports = {
 
       req.end(this._onResponse.bind(this, options));
     }.bind(this));
+  },
+
+  uploadFile: function(filePath, fileName, callback, options) {
+    var url = new URI(this.apiURL).path('/file').toString();
+    var req;
+
+    if (!_.include(['server', 'password'], this.authType)) {
+      throw new Error('File uploads are only supported on the server right now.');
+    }
+
+    req = this._getRequestObject().post(url).attach('source', filePath).field('filename', fileName);
+
+    req = _.compose(this._addHeaders.bind(this), this._addCORS.bind(this))(req);
+
+    return this._getPromise(options, function(resolve, reject) {
+      var options = {
+        resolve: resolve,
+        reject: reject,
+        callback: callback || null,
+        requestParams: {
+          requestType: 'file',
+          filePath: filePath,
+          fileName: fileName
+        }
+      };
+
+      req.end(this._onResponse.bind(this, options));
+    }.bind(this));
   }
 };
-},{"./PodioErrors":2,"./auth":4,"URIjs":9,"es6-promise":12,"lodash":13,"superagent":14}],6:[function(require,module,exports){
+},{"./PodioErrors":2,"./auth":4,"URIjs":9,"es6-promise":11,"lodash":12,"superagent":13}],6:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 
@@ -476,7 +553,7 @@ module.exports = {
     return new URI(apiURL).domain();
   }
 };
-},{"URIjs":9,"lodash":13}],7:[function(require,module,exports){
+},{"URIjs":9,"lodash":12}],7:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  * IPv6 Support
@@ -3426,94 +3503,6 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],11:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canMutationObserver = typeof window !== 'undefined'
-    && window.MutationObserver;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
-    }
-
-    var queue = [];
-
-    if (canMutationObserver) {
-        var hiddenDiv = document.createElement("div");
-        var observer = new MutationObserver(function () {
-            var queueList = queue.slice();
-            queue.length = 0;
-            queueList.forEach(function (fn) {
-                fn();
-            });
-        });
-
-        observer.observe(hiddenDiv, { attributes: true });
-
-        return function nextTick(fn) {
-            if (!queue.length) {
-                hiddenDiv.setAttribute('yes', 'no');
-            }
-            queue.push(fn);
-        };
-    }
-
-    if (canPost) {
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
-    }
-
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-
-},{}],12:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -4482,7 +4471,7 @@ process.chdir = function (dir) {
     }
 }).call(this);
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":11}],13:[function(require,module,exports){
+},{"_process":16}],12:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -11271,7 +11260,7 @@ process.chdir = function (dir) {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -12349,7 +12338,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":15,"reduce":16}],15:[function(require,module,exports){
+},{"emitter":14,"reduce":15}],14:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -12515,7 +12504,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -12540,5 +12529,93 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
+},{}],16:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canMutationObserver = typeof window !== 'undefined'
+    && window.MutationObserver;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    var queue = [];
+
+    if (canMutationObserver) {
+        var hiddenDiv = document.createElement("div");
+        var observer = new MutationObserver(function () {
+            var queueList = queue.slice();
+            queue.length = 0;
+            queueList.forEach(function (fn) {
+                fn();
+            });
+        });
+
+        observer.observe(hiddenDiv, { attributes: true });
+
+        return function nextTick(fn) {
+            if (!queue.length) {
+                hiddenDiv.setAttribute('yes', 'no');
+            }
+            queue.push(fn);
+        };
+    }
+
+    if (canPost) {
+        window.addEventListener('message', function (ev) {
+            var source = ev.source;
+            if ((source === window || source === null) && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
 },{}]},{},[1])(1)
 });

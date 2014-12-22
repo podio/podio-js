@@ -57,16 +57,16 @@ describe('PlatformJS', function() {
         authType: 'client',
         clientId: 123
       };
-      var sessionStore = {
-        get: sinon.spy(function(authType, callback) {
-          callback({ accessToken: 123 });
-        })
-      };
-      var instance = new PlatformJS(authOptions, { sessionStore: sessionStore });
+      var sessionStore = {};
+      var instance;
 
-      expect(sessionStore.get.calledOnce).toBe(true);
-      expect(sessionStore.get.getCall(0).args[0]).toEqual('client');
-      expect(instance.authObject.accessToken).toEqual(123);
+      sinon.stub(PlatformJS.prototype, '_getAuthFromStore');
+
+      instance = new PlatformJS(authOptions, { sessionStore: sessionStore });
+
+      expect(instance._getAuthFromStore.calledOnce).toBe(true);
+
+      PlatformJS.prototype._getAuthFromStore.restore();
     });
 
     it('should still set the apiURL to default when a session store is provided', function() {
@@ -80,6 +80,18 @@ describe('PlatformJS', function() {
       var instance = new PlatformJS(authOptions, { sessionStore: sessionStore });
 
       expect(instance.apiURL).toEqual('https://api.podio.com:443');
+    });
+
+    it('should set onTokenWillRefresh callback', function() {
+      var authOptions = {
+        authType: 'client',
+        clientId: 123
+      };
+      var onTokenWillRefresh = function() {};
+
+      var instance = new PlatformJS(authOptions, { onTokenWillRefresh: onTokenWillRefresh });
+
+      expect(instance.onTokenWillRefresh).toEqual(onTokenWillRefresh);
     });
 
   });

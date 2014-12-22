@@ -144,6 +144,25 @@ describe('auth', function() {
 
   });
 
+  describe('_getAuthFromStore', function() {
+
+    it('should get auth data from the session store and store it in memory', function() {
+      var authObject = { accessToken: 'e123' };
+      var host = {
+        sessionStore: { get: sinon.stub().callsArgWith(1, authObject) },
+        authType: 'client'
+      };
+
+      auth._getAuthFromStore.call(host);
+
+      expect(host.sessionStore.get.calledOnce).toBe(true);
+      expect(host.sessionStore.get.getCall(0).args[0]).toEqual(host.authType);
+      expect(_.isFunction(host.sessionStore.get.getCall(0).args[1])).toBe(true);
+      expect(host.authObject).toEqual(authObject);
+    });
+
+  });
+
   describe('_hasClientSideRedirect', function() {
 
     it('should return false for non client auth', function() {
@@ -326,12 +345,13 @@ describe('auth', function() {
 
   describe('_refreshToken', function() {
 
-    it('calls authenticate with the refresh token', function() {
+    it('should call authenticate with the refresh token, clear previous authentication', function() {
       var host = {
         authObject: {
           refreshToken: 123
         },
-        _authenticate: sinon.stub()
+        _authenticate: sinon.stub(),
+        _clearAuthentication: sinon.stub()
       };
       var expectedOptions = {
         grant_type: 'refresh_token',
@@ -342,9 +362,10 @@ describe('auth', function() {
 
       expect(host._authenticate.calledOnce).toBe(true);
       expect(host._authenticate.getCall(0).args[0]).toEqual(expectedOptions);
+      expect(host._clearAuthentication.calledOnce).toBe(true);
     });
 
-    it('calls _onAccessTokenAcquired when authentication is done', function() {
+    it('should call _onAccessTokenAcquired when authentication is done', function() {
       var callbackFn = function() {};
       var responseData = { accessToken: 123 };
       var host = {
@@ -354,13 +375,33 @@ describe('auth', function() {
         _authenticate: function(requestData, callback) {
           callback(responseData);
         },
-        _onAccessTokenAcquired: sinon.stub()
+        _onAccessTokenAcquired: sinon.stub(),
+        _clearAuthentication: sinon.stub()
       };
 
       auth._refreshToken.call(host, callbackFn);
 
       expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
       expect(host._onAccessTokenAcquired.calledWithExactly(responseData, callbackFn)).toBe(true);
+    });
+
+    it('should call an onTokenWillRefresh callback if present and client side authentication is chosen', function() {
+      var callbackFn = function() {};
+      var host = {
+        authObject: {},
+        _clearAuthentication: function() {},
+        authType: 'client',
+        onTokenWillRefresh: sinon.stub(),
+        _onAccessTokenAcquired: sinon.stub(),
+        _authenticate: sinon.stub()
+      };
+
+      auth._refreshToken.call(host, callbackFn);
+
+      expect(host.onTokenWillRefresh.calledOnce).toBe(true);
+      expect(host.onTokenWillRefresh.calledWithExactly(callbackFn)).toBe(true);
+      expect(host._authenticate.called).toBe(false);
+      expect(host._onAccessTokenAcquired.called).toBe(false);
     });
 
   });
