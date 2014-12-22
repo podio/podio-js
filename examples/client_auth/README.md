@@ -1,6 +1,6 @@
 # Podio Password Auth
 
-A simple example app for password authentication against the Platform API.
+A simple example app for client side authentication against the Platform API.
 
 # Installation
 

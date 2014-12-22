@@ -11,7 +11,7 @@ npm install
 # Server
 
 ```
-DEBUG=server_auth ./bin/www
+npm start
 ```
 
 The app is accessible through http://localhost:3000
