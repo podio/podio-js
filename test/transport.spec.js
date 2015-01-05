@@ -294,6 +294,7 @@ describe('transport', function() {
       host = {
         _getAuth: sinon.stub().returns(auth),
         _getRequestObject: sinon.stub().returns(request),
+        _formatMethod: sinon.stub().returns('get'),
         _addRequestData: sinon.spy(function(data, method, req) {
           req.requestData = {};
 
@@ -380,6 +381,12 @@ describe('transport', function() {
       expect(host._onResponse.getCall(0).args[0].resolve).toEqual(resolve);
       expect(host._onResponse.getCall(0).args[0].reject).toEqual(reject);
       expect(host._onResponse.getCall(0).args[0].callback).toEqual(callback);
+    });
+
+    it('should format the method passed', function() {
+      transport.request.call(host, 'GET', '/test', null, function(responseData) {});
+
+      expect(host._formatMethod.calledOnce).toBe(true);
     });
 
   });
@@ -548,6 +555,22 @@ describe('transport', function() {
       expect(host.uploadFile.calledOnce).toBe(true);
       expect(host.uploadFile.calledWithExactly(request.filePath, request.fileName, options.callback, resolveRejectOptions)).toBe(true);
       expect(host.request.called).toBe(false);
+    });
+
+  });
+
+  describe('_formatMethod', function() {
+
+    it('should transform a method other than delete to lowercase', function() {
+      var result = transport._formatMethod('GET');
+
+      expect(result).toEqual('get');
+    });
+
+    it('should return del when delete is used as the method name', function() {
+      var result = transport._formatMethod('DELETE');
+
+      expect(result).toEqual('del');
     });
 
   });
