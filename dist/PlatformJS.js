@@ -6,6 +6,7 @@ var _ = require('lodash');
 var DEFAULT_API_URL = 'https://api.podio.com:443';
 
 var utils = require('./utils');
+var GeneralLib = require('./general');
 var AuthLib = require('./auth');
 var TransportLib = require('./transport');
 
@@ -36,11 +37,11 @@ var PlatformJS = function(authOptions, options) {
   }
 };
 
-PlatformJS.prototype = _.extend({}, AuthLib, TransportLib);
+PlatformJS.prototype = _.extend({}, AuthLib, TransportLib, GeneralLib);
 
 module.exports = PlatformJS;
 
-},{"./auth":4,"./transport":5,"./utils":6,"lodash":12}],2:[function(require,module,exports){
+},{"./auth":4,"./general":5,"./transport":6,"./utils":7,"lodash":13}],2:[function(require,module,exports){
 var _ = require('lodash');
 
 var errors = {
@@ -114,7 +115,7 @@ _.each(errors, function(err, name) {
 });
 
 module.exports = errors;
-},{"lodash":12}],3:[function(require,module,exports){
+},{"lodash":13}],3:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function(accessToken, refreshToken, expiresIn, ref) {
@@ -135,7 +136,7 @@ module.exports = function(accessToken, refreshToken, expiresIn, ref) {
   this.expiresIn = expiresIn;
   this.ref = ref;
 };
-},{"lodash":12}],4:[function(require,module,exports){
+},{"lodash":13}],4:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -310,7 +311,38 @@ module.exports = {
     }.bind(this));
   }
 };
-},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":6,"URIjs":9,"lodash":12,"superagent":13}],5:[function(require,module,exports){
+},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":7,"URIjs":10,"lodash":13,"superagent":14}],5:[function(require,module,exports){
+var URI = require('URIjs');
+var _ = require('lodash');
+var PodioErrors = require('./PodioErrors');
+
+module.exports = {
+  _getAuth: function() {
+    // we have the auth object mixed in
+    return this;
+  },
+
+  getThumbnailURLForFileLink: function(link, size) {
+    var ALLOWED_SIZES = ['badge', 'large', 'medium', 'small', 'tiny'];
+    var uri = new URI(link);
+
+    if (!this._getAuth().isAuthenticated()) {
+      throw new PodioErrors.PodioForbiddenError('Authentication has not been performed');
+    }
+
+    if (!_.include(ALLOWED_SIZES, size)) {
+      size = null;
+    }
+
+    if (size) {
+      // append the size segment
+      uri.segment(size);
+    }
+
+    return uri.setQuery('oauth_token', this.authObject.accessToken).toString();
+  }
+};
+},{"./PodioErrors":2,"URIjs":10,"lodash":13}],6:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -432,7 +464,7 @@ module.exports = {
 
       options.callback(res.body, res);
     } else {
-      options.reject(res.body.error_description);
+      options.reject({ description: res.body.error_description, body: res.body, status: res.status, url: options.requestParams.url});
 
       this._handleTransportError(options, res);
     }
@@ -450,6 +482,16 @@ module.exports = {
     return request;
   },
 
+  _formatMethod: function(method) {
+    method = method.toLowerCase();
+
+    if (method === 'delete') {
+      return 'del';
+    } else {
+      return method;
+    }
+  },
+
   request: function(method, path, data, callback, options) {
     var url = new URI(this.apiURL).path(path).toString();
     var request = this._getRequestObject();
@@ -459,7 +501,7 @@ module.exports = {
       throw new PodioErrors.PodioForbiddenError('Authentication has not been performed');
     }
 
-    method = method.toLowerCase();
+    method = this._formatMethod(method);
 
     req = request[method](url);
     req = _.compose(this._addRequestData.bind(this, data, method), this._addHeaders.bind(this), this._addCORS.bind(this), this._setOptions.bind(this, options || {}))(req);
@@ -510,7 +552,7 @@ module.exports = {
     }.bind(this));
   }
 };
-},{"./PodioErrors":2,"./auth":4,"URIjs":9,"es6-promise":11,"lodash":12,"superagent":13}],6:[function(require,module,exports){
+},{"./PodioErrors":2,"./auth":4,"URIjs":10,"es6-promise":12,"lodash":13,"superagent":14}],7:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 
@@ -553,7 +595,7 @@ module.exports = {
     return new URI(apiURL).domain();
   }
 };
-},{"URIjs":9,"lodash":12}],7:[function(require,module,exports){
+},{"URIjs":10,"lodash":13}],8:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  * IPv6 Support
@@ -743,7 +785,7 @@ module.exports = {
   };
 }));
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  * Second Level Domain (SLD) Support
@@ -986,7 +1028,7 @@ module.exports = {
   return SLD;
 }));
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  *
@@ -2990,7 +3032,7 @@ module.exports = {
   return URI;
 }));
 
-},{"./IPv6":7,"./SecondLevelDomains":8,"./punycode":10}],10:[function(require,module,exports){
+},{"./IPv6":8,"./SecondLevelDomains":9,"./punycode":11}],11:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/punycode v1.2.3 by @mathias */
 ;(function(root) {
@@ -3502,7 +3544,7 @@ module.exports = {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -4471,7 +4513,7 @@ module.exports = {
     }
 }).call(this);
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":16}],12:[function(require,module,exports){
+},{"_process":17}],13:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -11260,7 +11302,7 @@ module.exports = {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -12338,7 +12380,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":14,"reduce":15}],14:[function(require,module,exports){
+},{"emitter":15,"reduce":16}],15:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -12504,7 +12546,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -12529,7 +12571,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
