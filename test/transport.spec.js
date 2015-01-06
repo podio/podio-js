@@ -235,17 +235,25 @@ describe('transport', function() {
         _handleTransportError: sinon.stub()
       };
       var options = {
-        reject: sinon.stub()
+        reject: sinon.stub(),
+        requestParams: { url: 'http://url' }
       };
       var res = {
         ok: false,
-        body: { error_description: 'Error occured' }
+        body: { error_description: 'Error occured' },
+        status: '404'
+      };
+      var expectedArgs = {
+        description: res.body.error_description,
+        body: res.body,
+        status: res.status,
+        url: options.requestParams.url
       };
 
       transport._onResponse.call(host, options, res);
 
       expect(options.reject.calledOnce).toBe(true);
-      expect(options.reject.calledWithExactly(res.body.error_description)).toBe(true);
+      expect(options.reject.calledWithExactly(expectedArgs)).toBe(true);
       expect(host._handleTransportError.calledOnce).toBe(true);
       expect(host._handleTransportError.calledWithExactly(options, res)).toBe(true);
     });

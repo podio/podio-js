@@ -13,7 +13,7 @@ describe('general', function() {
       };
       this.host = {
         _getAuth: sinon.stub().returns(this.auth),
-        authObject: { access: '12345' }
+        authObject: { accessToken: '12345' }
       };
       this.url = 'https://files.podio.com/140156539';
     });
