@@ -1,4 +1,5 @@
 var transport = require('../lib/transport');
+var PodioErrors = require('../lib/PodioErrors');
 var sinon = require('sinon');
 var _ = require('lodash');
 
@@ -106,109 +107,6 @@ describe('transport', function() {
     
   });
 
-  describe('_handleTransportError', function() {
-
-    var PodioAuthorizationError = function(message, status, url) {
-      this.message = message;
-      this.status = status;
-      this.url = url;
-      this.name = 'PodioAuthorizationError';
-    };
-
-    it('should try to refresh token when the expire error is triggered', function() {
-      var auth = {
-        _refreshToken: sinon.stub().callsArg(0)
-      };
-      var host = {
-        _onTokenRefreshed: sinon.stub(),
-        authObject: {
-          refreshToken: 'e123'
-        },
-        _getAuth: sinon.stub().returns(auth)
-      };
-      var options = {
-        resolve: function() {},
-        reject: function() {},
-        callback: function() {},
-        requestParams: {
-          method: 'GET',
-          path: '/tasks',
-          data: {},
-          requestType: 'generic'
-        }
-      };
-      var response = {
-        status: 401,
-        body: {
-          error_description: 'expired_token'
-        }
-      };
-
-      transport._handleTransportError.call(host, options, response);
-
-      expect(auth._refreshToken.calledOnce).toBe(true);
-      expect(_.isFunction(auth._refreshToken.getCall(0).args[0])).toBe(true);
-
-      // verify bound arguments
-      expect(host._onTokenRefreshed.getCall(0).args[0]).toEqual(options.requestParams);
-      expect(host._onTokenRefreshed.getCall(0).args[1]).toEqual(options);
-    });
-
-    it('should throw a PodioAuthorizationError if the 401 is not an expired token error and clear the current auth data', function() {
-      var auth = {
-        _clearAuthentication: sinon.stub()
-      };
-      var host = {
-        _getAuth: sinon.stub().returns(auth)
-      };
-      var response = {
-        status: 401,
-        body: {
-          error_description: 'invalid_grant'
-        }
-      };
-      var options = {
-        requestParams: {
-          url: '/tasks'
-        }
-      };
-
-      expect(function() {
-        transport._handleTransportError.call(host, options, response);
-      }).toThrow(new PodioAuthorizationError(response.body, 401, '/tasks'));
-      expect(auth._clearAuthentication.calledOnce).toBe(true);
-    });
-
-    it('should throw a PodioAuthorizationError if the 401 is an invalid token error but the refresh token is missing', function() {
-      var auth = {
-        _clearAuthentication: sinon.stub()
-      };
-      var host = {
-        _getAuth: sinon.stub().returns(auth),
-        authObject: {
-          authToken: 123
-        }
-      };
-      var response = {
-        status: 401,
-        body: {
-          error: 'invalid_token'
-        }
-      };
-      var options = {
-        requestParams: {
-          url: '/tasks'
-        }
-      };
-
-      expect(function() {
-        transport._handleTransportError.call(host, options, response);
-      }).toThrow(new PodioAuthorizationError(response.body, 401, '/tasks'));
-      expect(auth._clearAuthentication.calledOnce).toBe(true);
-    });
-
-  });
-
   describe('_onResponse', function() {
 
     it('should call resolve and callback if response was a success', function() {
@@ -230,7 +128,7 @@ describe('transport', function() {
       expect(options.callback.calledWithExactly(res.body, res)).toBe(true);
     });
 
-    it('should call reject and handle the error if response was a failure', function() {
+    it('should call reject and handle the error if response was a failure different from HTTP 401', function() {
       var host = {
         _handleTransportError: sinon.stub()
       };
@@ -256,6 +154,94 @@ describe('transport', function() {
       expect(options.reject.calledWithExactly(expectedArgs)).toBe(true);
       expect(host._handleTransportError.calledOnce).toBe(true);
       expect(host._handleTransportError.calledWithExactly(options, res)).toBe(true);
+    });
+
+    it('should try to refresh token when the token expires with an HTTP 401', function() {
+      var auth = {
+        _refreshToken: sinon.stub().callsArg(0)
+      };
+      var host = {
+        authObject: { refreshToken: 'abc1234' },
+        _getAuth: sinon.stub().returns(auth),
+        _onTokenRefreshed: sinon.stub()
+      };
+      var options = {
+        requestParams: {},
+        reject: function() {}
+      };
+      var response = {
+        status: 401,
+        body: {
+          error_description: 'expired_token'
+        },
+        ok: false
+      };
+
+      transport._onResponse.call(host, options, response);
+
+      expect(auth._refreshToken.calledOnce).toBe(true);
+      expect(_.isFunction(auth._refreshToken.getCall(0).args[0])).toBe(true);
+      expect(host._onTokenRefreshed.calledOnce).toBe(true);
+      expect(host._onTokenRefreshed.calledWithExactly(options.requestParams, options)).toBe(true);
+    });
+
+    it('should handle the error if response was a HTTP 401 but not a token expiration', function() {
+      var res = {
+        ok: false,
+        body: {},
+        status: 401
+      };
+      var options = {
+        requestParams: {},
+        reject: function() {}
+      };
+      var host = {
+        _handleTransportError: sinon.stub()
+      };
+
+      transport._onResponse.call(host, options, res);
+
+      expect(host._handleTransportError.calledOnce).toBe(true);
+    });
+
+    it('should handle the error if response is a HTTP 401 with an expired token error, but the refresh token is missing', function() {
+      var res = {
+        ok: false,
+        body: { error: 'invalid_token' },
+        status: 401
+      };
+      var options = {
+        requestParams: {},
+        reject: function() {}
+      };
+      var host = {
+        _handleTransportError: sinon.stub(),
+        authObject: { authToken: 123 }
+      };
+
+      transport._onResponse.call(host, options, res);
+
+      expect(host._handleTransportError.calledOnce).toBe(true);
+    });
+
+    it('should not throw any exceptions if silent option is set', function() {
+      var host = {
+        _handleTransportError: sinon.stub(),
+        silent: true
+      };
+      var options = {
+        reject: function() {},
+        requestParams: { url: 'http://url' }
+      };
+      var res = {
+        ok: false,
+        body: { error_description: 'Error occured' },
+        status: '404'
+      };
+
+      transport._onResponse.call(host, options, res);
+
+      expect(host._handleTransportError.called).toBe(false);
     });
 
   });
@@ -563,6 +549,240 @@ describe('transport', function() {
       expect(host.uploadFile.calledOnce).toBe(true);
       expect(host.uploadFile.calledWithExactly(request.filePath, request.fileName, options.callback, resolveRejectOptions)).toBe(true);
       expect(host.request.called).toBe(false);
+    });
+
+  });
+
+  describe('_handleTransportError', function() {
+
+    beforeEach(function() {
+      sinon.spy(transport, '_handleTransportError');
+    });
+
+    afterEach(function() {
+      transport._handleTransportError.restore();
+    });
+
+    it('should throw a PodioBadRequestError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 400
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioBadRequestError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioAuthorizationError with the right parameters and clear the authentication', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 401
+      };
+      var auth = {
+        _clearAuthentication: sinon.stub()
+      };
+      var host = {
+        _getAuth: sinon.stub().returns(auth)
+      };
+
+      expect(function() {
+        transport._handleTransportError.call(host, options, response)
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioAuthorizationError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+      expect(auth._clearAuthentication.calledOnce).toBe(true);
+    });
+
+    it('should throw a PodioForbiddenError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 403
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioForbiddenError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioNotFoundError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 404
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioNotFoundError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioConflictError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 409
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioConflictError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioGoneError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 410
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioGoneError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioRateLimitError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 420
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioRateLimitError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioServerError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 500
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioServerError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioUnavailableError 502 with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 502
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioUnavailableError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioUnavailableError 503 with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 503
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioUnavailableError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioUnavailableError 504 with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {},
+        status: 504
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioUnavailableError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
+    });
+
+    it('should throw a PodioError with the right parameters', function() {
+      var options = {
+        requestParams: { url: 'https://example.com' }
+      };
+      var response = {
+        body: {}
+      };
+
+      expect(function() {
+        transport._handleTransportError(options, response);
+      }).toThrow(new Error());
+      expect(transport._handleTransportError.exceptions[0].name).toEqual('PodioError');
+      expect(transport._handleTransportError.exceptions[0].message).toEqual(response.body);
+      expect(transport._handleTransportError.exceptions[0].status).toEqual(response.status);
+      expect(transport._handleTransportError.exceptions[0].url).toEqual(options.requestParams.url);
     });
 
   });
