@@ -105,7 +105,7 @@ describe('auth', function() {
 
   });
 
-  describe('authenticateWithCredentials', function() {
+  describe('authenticateWithCredentialsForOffering', function() {
 
     it('should call authenticate with credentials and the correct grant type', function() {
       var host = {
@@ -119,7 +119,7 @@ describe('auth', function() {
         password: password
       };
 
-      auth.authenticateWithCredentials.call(host, username, password);
+      auth.authenticateWithCredentialsForOffering.call(host, username, password);
 
       expect(host._authenticate.calledOnce).toBe(true);
       expect(host._authenticate.getCall(0).args[0]).toEqual(expected);
@@ -136,7 +136,7 @@ describe('auth', function() {
       var password = 'password';
       var callback = function() {};
 
-      auth.authenticateWithCredentials.call(host, username, password, callback);
+      auth.authenticateWithCredentialsForOffering.call(host, username, password, null, callback);
 
       expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
       expect(host._onAccessTokenAcquired.calledWithExactly(responseData, callback)).toBe(true);

@@ -16,7 +16,7 @@ router.get('/', function(req, res) {
     res.render('success');
   } else {
     try {
-      platform.authenticateWithCredentials(username, password, function() {
+      platform.authenticateWithCredentialsForOffering(username, password, null, function() {
         // we are ready to make API calls
         res.render('success');
       });
