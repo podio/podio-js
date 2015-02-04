@@ -1,4 +1,5 @@
 var express = require('express');
+var domain = require('domain');
 var router = express.Router();
 var PlatformJS = require('../../../lib/PlatformJS');
 var sessionStore = require('../sessionStore');
@@ -15,14 +16,23 @@ router.get('/', function(req, res) {
     // ready to make API calls
     res.render('success');
   } else {
-    try {
+    var reqdomain = domain.create();
+
+    reqdomain.on('error', function(e) {
+      console.log('Error:', e.name);
+      console.log('Error description:', e.message.error_description);
+      console.log('HTTP status:', e.status);
+      console.log('Requested URL:', e.url);
+
+      res.render('error', { description: e.message });
+    });
+
+    reqdomain.run(function() {
       platform.authenticateWithCredentialsForOffering(username, password, null, function() {
         // we are ready to make API calls
         res.render('success');
       });
-    } catch(e) {
-      res.render('error', { description: e.message });
-    }
+    });
   }
 });
 
