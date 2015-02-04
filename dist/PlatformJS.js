@@ -1,5 +1,5 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.PlatformJS=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var VERSION = '1.1.3';
+var VERSION = '1.2.0';
 
 var _ = require('lodash');
 
@@ -41,7 +41,7 @@ PlatformJS.prototype = _.extend({}, AuthLib, TransportLib, GeneralLib);
 
 module.exports = PlatformJS;
 
-},{"./auth":4,"./general":5,"./transport":6,"./utils":7,"lodash":13}],2:[function(require,module,exports){
+},{"./auth":4,"./general":5,"./transport":6,"./utils":7,"lodash":14}],2:[function(require,module,exports){
 var _ = require('lodash');
 
 var errors = {
@@ -115,7 +115,7 @@ _.each(errors, function(err, name) {
 });
 
 module.exports = errors;
-},{"lodash":13}],3:[function(require,module,exports){
+},{"lodash":14}],3:[function(require,module,exports){
 var _ = require('lodash');
 
 module.exports = function(accessToken, refreshToken, expiresIn, ref) {
@@ -136,7 +136,7 @@ module.exports = function(accessToken, refreshToken, expiresIn, ref) {
   this.expiresIn = expiresIn;
   this.ref = ref;
 };
-},{"lodash":13}],4:[function(require,module,exports){
+},{"lodash":14}],4:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -206,12 +206,16 @@ module.exports = {
     }).setQuery(query).toString();
   },
 
-  authenticateWithCredentials: function(username, password, callback) {
+  authenticateWithCredentialsForOffering: function(username, password, offeringId, callback) {
     var requestData = {
       grant_type: 'password',
       username: username,
       password: password
     };
+
+    if (offeringId) {
+      requestData.offering_id = offeringId;
+    }
 
     this._authenticate(requestData, function(responseData) {
       this._onAccessTokenAcquired(responseData, callback);
@@ -311,7 +315,7 @@ module.exports = {
     }.bind(this));
   }
 };
-},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":7,"URIjs":10,"lodash":13,"superagent":14}],5:[function(require,module,exports){
+},{"./PodioErrors":2,"./PodioOAuth":3,"./utils":7,"URIjs":10,"lodash":14,"superagent":15}],5:[function(require,module,exports){
 var URI = require('URIjs');
 var _ = require('lodash');
 var PodioErrors = require('./PodioErrors');
@@ -342,7 +346,7 @@ module.exports = {
     return uri.setQuery('oauth_token', this.authObject.accessToken).toString();
   }
 };
-},{"./PodioErrors":2,"URIjs":10,"lodash":13}],6:[function(require,module,exports){
+},{"./PodioErrors":2,"URIjs":10,"lodash":14}],6:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 var request = require('superagent');
@@ -417,23 +421,14 @@ module.exports = {
         throw new PodioErrors.PodioBadRequestError(response.body, response.status, request.url);
         break;
       case 401:
-        if (response.body.error === 'invalid_token' || response.body.error_description === 'expired_token') {
-          if (this.authObject.refreshToken) {
-            this._getAuth()._refreshToken(this._onTokenRefreshed.bind(this, request, options));
-          } else {
-            this._getAuth()._clearAuthentication();
-            throw new PodioErrors.PodioAuthorizationError(response.body, response.status, request.url);
-          }
-        } else {
-          this._getAuth()._clearAuthentication();
-          throw new PodioErrors.PodioAuthorizationError(response.body, response.status, request.url);
-        }
+        this._getAuth()._clearAuthentication();
+        throw new PodioErrors.PodioAuthorizationError(response.body, response.status, request.url);
         break;
       case 403:
         throw new PodioErrors.PodioForbiddenError(response.body, response.status, request.url);
         break;
       case 404:
-        throw new PodioErrors.PodioForbiddenError(response.body, response.status, request.url);
+        throw new PodioErrors.PodioNotFoundError(response.body, response.status, request.url);
         break;
       case 409:
         throw new PodioErrors.PodioConflictError(response.body, response.status, request.url);
@@ -462,11 +457,17 @@ module.exports = {
     if (res.ok) {
       options.resolve(res.body);
 
-      options.callback(res.body, res);
+      if (!_.isNull(options.callback)) {
+        options.callback(res.body, res);
+      }
     } else {
       options.reject({ description: res.body.error_description, body: res.body, status: res.status, url: options.requestParams.url});
 
-      this._handleTransportError(options, res);
+      if (res.status === 401 && (res.body.error === 'invalid_token' || res.body.error_description === 'expired_token') && this.authObject.refreshToken) {
+        this._getAuth()._refreshToken(this._onTokenRefreshed.bind(this, options.requestParams, options));
+      } else if (this.silent !== true) {
+        this._handleTransportError(options, res);
+      }
     }
   },
 
@@ -552,7 +553,7 @@ module.exports = {
     }.bind(this));
   }
 };
-},{"./PodioErrors":2,"./auth":4,"URIjs":10,"es6-promise":12,"lodash":13,"superagent":14}],7:[function(require,module,exports){
+},{"./PodioErrors":2,"./auth":4,"URIjs":10,"es6-promise":13,"lodash":14,"superagent":15}],7:[function(require,module,exports){
 var _ = require('lodash');
 var URI = require('URIjs');
 
@@ -595,7 +596,7 @@ module.exports = {
     return new URI(apiURL).domain();
   }
 };
-},{"URIjs":10,"lodash":13}],8:[function(require,module,exports){
+},{"URIjs":10,"lodash":14}],8:[function(require,module,exports){
 /*!
  * URI.js - Mutating URLs
  * IPv6 Support
@@ -3545,13 +3546,72 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],12:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    draining = true;
+    var currentQueue;
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        var i = -1;
+        while (++i < len) {
+            currentQueue[i]();
+        }
+        len = queue.length;
+    }
+    draining = false;
+}
+process.nextTick = function (fun) {
+    queue.push(fun);
+    if (!draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],13:[function(require,module,exports){
 (function (process,global){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/jakearchibald/es6-promise/master/LICENSE
- * @version   2.0.0
+ * @version   2.0.1
  */
 
 (function() {
@@ -4182,13 +4242,11 @@ module.exports = {
 
       @class Promise
       @param {function} resolver
-      @param {String} label optional string for labeling the promise.
       Useful for tooling.
       @constructor
     */
-    function $$es6$promise$promise$$Promise(resolver, label) {
+    function $$es6$promise$promise$$Promise(resolver) {
       this._id = $$es6$promise$promise$$counter++;
-      this._label = label;
       this._state = undefined;
       this._result = undefined;
       this._subscribers = [];
@@ -4404,11 +4462,10 @@ module.exports = {
       @method then
       @param {Function} onFulfilled
       @param {Function} onRejected
-      @param {String} label optional string for labeling the promise.
       Useful for tooling.
       @return {Promise}
     */
-      then: function(onFulfillment, onRejection, label) {
+      then: function(onFulfillment, onRejection) {
         var parent = this;
         var state = parent._state;
 
@@ -4416,9 +4473,7 @@ module.exports = {
           return this;
         }
 
-        parent._onerror = null;
-
-        var child = new this.constructor($$$internal$$noop, label);
+        var child = new this.constructor($$$internal$$noop);
         var result = parent._result;
 
         if (state) {
@@ -4457,12 +4512,11 @@ module.exports = {
 
       @method catch
       @param {Function} onRejection
-      @param {String} label optional string for labeling the promise.
       Useful for tooling.
       @return {Promise}
     */
-      'catch': function(onRejection, label) {
-        return this.then(null, onRejection, label);
+      'catch': function(onRejection) {
+        return this.then(null, onRejection);
       }
     };
 
@@ -4499,8 +4553,8 @@ module.exports = {
     };
 
     var es6$promise$umd$$ES6Promise = {
-      Promise: $$es6$promise$promise$$default,
-      polyfill: $$es6$promise$polyfill$$default
+      'Promise': $$es6$promise$promise$$default,
+      'polyfill': $$es6$promise$polyfill$$default
     };
 
     /* global define:true module:true window: true */
@@ -4513,7 +4567,7 @@ module.exports = {
     }
 }).call(this);
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":17}],13:[function(require,module,exports){
+},{"_process":12}],14:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -11302,7 +11356,7 @@ module.exports = {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -12380,7 +12434,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":15,"reduce":16}],15:[function(require,module,exports){
+},{"emitter":16,"reduce":17}],16:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -12546,7 +12600,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -12571,93 +12625,5 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],17:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canMutationObserver = typeof window !== 'undefined'
-    && window.MutationObserver;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
-    }
-
-    var queue = [];
-
-    if (canMutationObserver) {
-        var hiddenDiv = document.createElement("div");
-        var observer = new MutationObserver(function () {
-            var queueList = queue.slice();
-            queue.length = 0;
-            queueList.forEach(function (fn) {
-                fn();
-            });
-        });
-
-        observer.observe(hiddenDiv, { attributes: true });
-
-        return function nextTick(fn) {
-            if (!queue.length) {
-                hiddenDiv.setAttribute('yes', 'no');
-            }
-            queue.push(fn);
-        };
-    }
-
-    if (canPost) {
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
-    }
-
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-
 },{}]},{},[1])(1)
 });
