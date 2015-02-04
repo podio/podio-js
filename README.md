@@ -27,7 +27,7 @@ If you are not using a loader, browserify PlatformJS like this:
 ```
 npm install -g browserify
 
-browserify lib/PlatformJS.js -s PlatformJS > dist/PlatformJS.js
+npm run-script bundle
 ```
 
 and include `dist/PlatformJS.js` using a `<script>` tag.

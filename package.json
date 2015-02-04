@@ -4,7 +4,8 @@
   "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
   "main": "lib/PlatformJS",
   "scripts": {
-    "test": "grunt"
+    "test": "grunt",
+    "bundle": "browserify lib/PlatformJS.js -s PlatformJS > dist/PlatformJS.js"
   },
   "repository": {
     "type": "git",
