@@ -76,9 +76,9 @@ describe('transport', function() {
     });
 
   });
-  
+
   describe('_setOptions', function() {
-    
+
     it('should set the application/x-www-form-urlencoded content type', function() {
       var req = {
         type: sinon.stub()
@@ -104,7 +104,7 @@ describe('transport', function() {
       expect(req.type.calledOnce).toBe(false);
 
     });
-    
+
   });
 
   describe('_onResponse', function() {
@@ -457,7 +457,7 @@ describe('transport', function() {
       expect(mocks.host._addCORS.calledOnce).toBe(true);
       expect(mocks.host._addCORS.calledWithExactly(mocks.req)).toBe(true);
     });
-    
+
     it('should receive a promise, execute the request and call the response handler with options', function() {
       var mocks = getFullMocks();
       var resolve = function() {};
