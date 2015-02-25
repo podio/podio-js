@@ -105,6 +105,27 @@ describe('transport', function() {
 
     });
 
+    it('should set the authorization header when basicAuth option is passed', function () {
+      var req = {
+        set: sinon.stub()
+      };
+
+      var options = {
+        basicAuth: true
+      };
+
+      transport.clientId = '123';
+      transport.clientSecret = 'abc';
+
+      var basicAuth = 'Basic ' +
+                      new Buffer(transport.clientId + ':' +
+                      transport.clientSecret).toString('base64');
+
+      transport._setOptions(options, req);
+
+      expect(req.set.calledWithExactly('Authorization', basicAuth)).toBe(true);
+    });
+
   });
 
   describe('_onResponse', function() {
