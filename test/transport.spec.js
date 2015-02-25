@@ -23,6 +23,30 @@ describe('transport', function() {
       expect(result).toEqual(newReq);
     });
 
+    it('should attach data as body for a post request', function() {
+      var data = { authToken: 123 };
+      var req = {
+        send: sinon.stub()
+      };
+
+      transport._addRequestData(data, 'post', req);
+
+      expect(req.send.calledOnce).toBe(true);
+      expect(req.send.calledWithExactly(data)).toBe(true);
+    });
+
+    it('should attach data as body for a put request', function() {
+      var data = { authToken: 123 };
+      var req = {
+        send: sinon.stub()
+      };
+
+      transport._addRequestData(data, 'put', req);
+
+      expect(req.send.calledOnce).toBe(true);
+      expect(req.send.calledWithExactly(data)).toBe(true);
+    });
+
   });
 
   describe('_addHeaders', function() {
