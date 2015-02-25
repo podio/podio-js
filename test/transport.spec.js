@@ -23,6 +23,30 @@ describe('transport', function() {
       expect(result).toEqual(newReq);
     });
 
+    it('should attach data as body for a post request', function() {
+      var data = { authToken: 123 };
+      var req = {
+        send: sinon.stub()
+      };
+
+      transport._addRequestData(data, 'post', req);
+
+      expect(req.send.calledOnce).toBe(true);
+      expect(req.send.calledWithExactly(data)).toBe(true);
+    });
+
+    it('should attach data as body for a put request', function() {
+      var data = { authToken: 123 };
+      var req = {
+        send: sinon.stub()
+      };
+
+      transport._addRequestData(data, 'put', req);
+
+      expect(req.send.calledOnce).toBe(true);
+      expect(req.send.calledWithExactly(data)).toBe(true);
+    });
+
   });
 
   describe('_addHeaders', function() {
@@ -267,6 +291,32 @@ describe('transport', function() {
 
   });
 
+  describe('_getRequestURI', function() {
+
+    var host;
+
+    beforeEach(function() {
+      host = {
+        apiURL: 'https://api.podio.com:443'
+      };
+    });
+
+    it('should return the correct url with only path provided', function() {
+      var path = '/test';
+      var result = transport._getRequestURI.call(host, path);
+
+      expect(result).toEqual('https://api.podio.com:443/test');
+    });
+
+    it('should return the correct url with both path and query provided', function() {
+      var path = '/test?param=true';
+      var result = transport._getRequestURI.call(host, path);
+
+      expect(result).toEqual('https://api.podio.com:443/test?param=true');
+    });
+
+  });
+
   describe('_getPromise', function() {
 
     it('should substitute resolve and reject functions with previous requests promise in case a token had to be refreshed', function() {
@@ -307,6 +357,7 @@ describe('transport', function() {
         isAuthenticated: sinon.stub().returns(true)
       };
       host = {
+        _getRequestURI: sinon.stub(),
         _getAuth: sinon.stub().returns(auth),
         _getRequestObject: sinon.stub().returns(request),
         _formatMethod: sinon.stub().returns('get'),
@@ -341,10 +392,15 @@ describe('transport', function() {
     });
 
     it('should call the correct method on the request object with a correct URL', function() {
+      var path = '/test';
       var url = 'https://api.podio.com:443/test';
 
-      transport.request.call(host, 'GET', '/test', null, function(responseData) {});
+      host._getRequestURI = sinon.stub().returns(url);
 
+      transport.request.call(host, 'GET', path, null, function(responseData) {});
+
+      expect(host._getRequestURI.calledOnce).toBe(true);
+      expect(host._getRequestURI.calledWithExactly(path)).toBe(true);
       expect(request.get.calledOnce).toBe(true);
       expect(request.get.calledWithExactly(url)).toBe(true);
     });
