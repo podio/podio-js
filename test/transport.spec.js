@@ -440,8 +440,8 @@ describe('transport', function() {
 
       expect(host._addRequestData.calledOnce).toBe(true);
       expect(host._addRequestData.calledWith(data, 'get')).toBe(true);
-      expect(host._addHeaders.calledOnce).toBe(false);
-      expect(host._addCORS.calledOnce).toBe(false);
+      expect(host._addHeaders.called).toBe(false);
+      expect(host._addCORS.called).toBe(false);
       expect(host._setOptions.calledOnce).toBe(true);
       expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
     });
