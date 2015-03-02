@@ -433,6 +433,33 @@ describe('transport', function() {
       expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
     });
 
+    it('should call only addRequestData and setOptions with the request object when basicAuth is true and let them augment it', function() {
+      var data = { data: true };
+
+      transport.request.call(host, 'GET', '/test', data, function(responseData) {}, {basicAuth: true});
+
+      expect(host._addRequestData.calledOnce).toBe(true);
+      expect(host._addRequestData.calledWith(data, 'get')).toBe(true);
+      expect(host._addHeaders.calledOnce).toBe(false);
+      expect(host._addCORS.calledOnce).toBe(false);
+      expect(host._setOptions.calledOnce).toBe(true);
+      expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
+    });
+
+    it('should not throw a PodioForbiddenError when basicAuth is true', function () {
+      var data = { data: true };
+
+      auth = {
+        isAuthenticated: sinon.stub().returns(false)
+      };
+
+      host._getAuth = sinon.stub().returns(auth);
+
+      expect(function() {
+        transport.request.call(host, 'GET', '/test', data, function(responseData) {}, {basicAuth: true});
+      }).not.toThrow(PodioErrors.PodioForbiddenError('Authentication has not been performed'));
+    });
+
     it('should pass resolve, reject and the callback into onResponse', function() {
       var resolve = function() {};
       var reject = function() {};
