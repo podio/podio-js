@@ -457,7 +457,7 @@ describe('transport', function() {
 
       expect(function() {
         transport.request.call(host, 'GET', '/test', data, function(responseData) {}, {basicAuth: true});
-      }).not.toThrow(PodioErrors.PodioForbiddenError('Authentication has not been performed'));
+      }).not.toThrow(new PodioErrors.PodioForbiddenError('Authentication has not been performed'));
     });
 
     it('should pass resolve, reject and the callback into onResponse', function() {
