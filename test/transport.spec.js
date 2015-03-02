@@ -436,7 +436,7 @@ describe('transport', function() {
     it('should call only addRequestData and setOptions with the request object when basicAuth is true and let them augment it', function() {
       var data = { data: true };
 
-      transport.request.call(host, 'GET', '/test', data, function(responseData) {}, {basicAuth: true});
+      transport.request.call(host, 'GET', '/test', data, function(responseData) {}, { basicAuth: true });
 
       expect(host._addRequestData.calledOnce).toBe(true);
       expect(host._addRequestData.calledWith(data, 'get')).toBe(true);
