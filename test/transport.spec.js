@@ -100,9 +100,9 @@ describe('transport', function() {
     });
 
   });
-  
+
   describe('_setOptions', function() {
-    
+
     it('should set the application/x-www-form-urlencoded content type', function() {
       var req = {
         type: sinon.stub()
@@ -128,7 +128,28 @@ describe('transport', function() {
       expect(req.type.calledOnce).toBe(false);
 
     });
-    
+
+    it('should set the authorization header when basicAuth option is passed', function () {
+      var req = {
+        set: sinon.stub()
+      };
+
+      var options = {
+        basicAuth: true
+      };
+
+      transport.clientId = '123';
+      transport.clientSecret = 'abc';
+
+      var basicAuth = 'Basic ' +
+                      new Buffer(transport.clientId + ':' +
+                      transport.clientSecret).toString('base64');
+
+      transport._setOptions(options, req);
+
+      expect(req.set.calledWithExactly('Authorization', basicAuth)).toBe(true);
+    });
+
   });
 
   describe('_onResponse', function() {
@@ -412,6 +433,33 @@ describe('transport', function() {
       expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
     });
 
+    it('should call only addRequestData and setOptions with the request object when basicAuth is true and let them augment it', function() {
+      var data = { data: true };
+
+      transport.request.call(host, 'GET', '/test', data, function(responseData) {}, { basicAuth: true });
+
+      expect(host._addRequestData.calledOnce).toBe(true);
+      expect(host._addRequestData.calledWith(data, 'get')).toBe(true);
+      expect(host._addHeaders.called).toBe(false);
+      expect(host._addCORS.called).toBe(false);
+      expect(host._setOptions.calledOnce).toBe(true);
+      expect(request.end.getCall(0).thisValue).toEqual(request); // request has been augmented at this point
+    });
+
+    it('should not throw a PodioForbiddenError when basicAuth is true', function () {
+      var data = { data: true };
+
+      auth = {
+        isAuthenticated: sinon.stub().returns(false)
+      };
+
+      host._getAuth = sinon.stub().returns(auth);
+
+      expect(function() {
+        transport.request.call(host, 'GET', '/test', data, function(responseData) {}, {basicAuth: true});
+      }).not.toThrow(new PodioErrors.PodioForbiddenError('Authentication has not been performed'));
+    });
+
     it('should pass resolve, reject and the callback into onResponse', function() {
       var resolve = function() {};
       var reject = function() {};
@@ -513,7 +561,7 @@ describe('transport', function() {
       expect(mocks.host._addCORS.calledOnce).toBe(true);
       expect(mocks.host._addCORS.calledWithExactly(mocks.req)).toBe(true);
     });
-    
+
     it('should receive a promise, execute the request and call the response handler with options', function() {
       var mocks = getFullMocks();
       var resolve = function() {};
