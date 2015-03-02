@@ -4,3 +4,4 @@ _site/*
 npm-debug.log
 Gemfile
 Gemfile.lock
+*.swp
