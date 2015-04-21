@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <link href="{{ site.baseurl}}/favicon.ico" rel="shortcut icon" sizes="16x16 32x32 64x64" />
+    <title>PlatformJS • Podio Platform client for NodeJS and the browser</title>
+    <link rel="stylesheet" href="{{ site.baseurl}}/css/normalize.css">
+    <link rel="stylesheet" href="{{ site.baseurl}}/css/syntax.css">
+    <link rel="stylesheet" href="{{ site.baseurl}}/css/style.css">
+    <meta charset="utf-8"> 
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <nav>
+          <ul>
+            <li class="{% if page.active == 'index' %}active{% endif %}"><a href="{{ site.baseurl}}/">Introduction</a></li>
+            <li class="{% if page.active == 'auth' %}active{% endif %}"><a href="{{ site.baseurl}}/authentication">Authentication</a></li>
+            <li class="{% if page.active == 'api' %}active{% endif %}"><a href="{{ site.baseurl}}/api-requests">Making API requests</a></li>
+            <li class="{% if page.active == 'sessions' %}active{% endif %}"><a href="{{ site.baseurl}}/sessions">Session management</a></li>
+            <li class="{% if page.active == 'errors' %}active{% endif %}"><a href="{{ site.baseurl}}/errors">Error handling</a></li>
+          </ul>
+        </nav>
+        <p class="about">You have found the official JavaScript client library for <a href="https://developers.podio.com/">Podio</a>. It covers all aspects of the Podio API.</p>
+        <p class="about">For help post on <a href="http://stackoverflow.com/questions/tagged/podio">Stack Overflow</a> and tag with <b>podioPlatform</b>. For bugs <a href="https://github.com/podio/podio-js/issues">create an issue on GitHub</a>.</p>
+        <ul class="buttons">
+          <li><a class="github" href="https://github.com/podio/podio-js">GitHub</a></li>
+        </ul>
+      </header>
+      <main>
+        {{ content }}
+      </main>
+    </div>
+  </body>
+</html>

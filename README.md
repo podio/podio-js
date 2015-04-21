@@ -1,46 +1,15 @@
-# podio-js [![Build Status](http://img.shields.io/travis/podio/podio-js.svg?style=flat-square)](https://travis-ci.org/podio/podio-js) [![Dependency Status](http://img.shields.io/gemnasium/podio/podio-js.svg?style=flat-square)](https://gemnasium.com/podio/podio-js) 
+# Github.io pages for podio-js
 
-> Podio JavaScript SDK for Node and the browser
+### Public URL
 
-## Installation
+[http://podio.github.io/podio-js/](http://podio.github.io/podio-js/)
 
-```
-npm install podio-js --save
-```
-
-## Usage
-
-#### Node
-
-```
-var PodioJS = require('podio-js');
-```
-
-#### Browser
-
-If you are using and AMD/CommonJS compatible module loader you can require the module:
-
-```
-var PodioJS = require('podio-js');
-```
-
-If you are not using a loader, browserify `podio-js` like this:
-
-```
-npm install -g browserify
-
-npm run bundle
-```
-
-and include `dist/podio-js.js` using a `<script>` tag.
-
-## Documentation
-
-You will find a detailed documentation at [http://podio.github.io/podio-js/](http://podio.github.io/podio-js/) and at [https://developers.podio.com/](https://developers.podio.com/)
-
-
-## Tests
+### Local server
 
 ```sh
-$ npm test
+bundle exec jekyll serve
 ```
+
+The page is available at `http://localhost:4000/platformJS/`
+
+For more docs see [Jekyll documentation](https://help.github.com/articles/using-jekyll-with-pages/)
