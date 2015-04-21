@@ -8,7 +8,7 @@ A simple example app for client side authentication against the Platform API.
 npm install
 ```
 
-Make sure to add your clientId in the [config file](https://github.com/podio/platformJS/blob/master/examples/client_auth/public/javascript/config.js).
+Make sure to add your clientId in the [config file](https://github.com/podio/podio-js/blob/master/examples/client_auth/public/javascript/config.js).
 
 # Server
 

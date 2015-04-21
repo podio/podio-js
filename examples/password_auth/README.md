@@ -8,7 +8,7 @@ A simple example app for password authentication against the Platform API.
 npm install
 ```
 
-Make sure to add your credentials to the [routes file](https://github.com/podio/platformJS/blob/master/examples/password_auth/routes/index.js#L6-L9).
+Make sure to add your credentials to the [routes file](https://github.com/podio/podio-js/blob/master/examples/password_auth/routes/index.js#L6-L9).
 
 # Server
 
