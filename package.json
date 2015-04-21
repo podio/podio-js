@@ -16,7 +16,7 @@
     "beagle",
     "platform"
   ],
-  "author": "Daniel Pouzemski",
+  "author": "Søren Brokær <rasmussen@podio.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/podio/podio-js/issues"
