@@ -11,7 +11,7 @@ podio-js is a Podio JavaScript SDK for `node` and the browser.
 podio-js is available as a NPM module and can be installed using:
 
 {% highlight sh %}
-$ npm install podio-js
+$ npm install podio-js --save
 {% endhighlight %}
 
 Alternatively it can be downloaded from the [GitHub repository](https://github.com/podio/podio-js/releases).
@@ -27,7 +27,7 @@ Please note if your are not using NPM you will have to include the following dep
 podio-js can be integrated using an AMD loader like RequireJS or a CommonJS loader compatible with `module.exports` (like the NodeJS module system). It can be required like this:
 
 {% highlight javascript %}
-var podio-js = require('podio-js');
+var podio = require('podio-js');
 {% endhighlight %}
 
 When used without a module loader in the browser it can be included using a `<script>` tag and accessed through a global `window.podio-js` object.
