@@ -2,66 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b83dc6b8-12af-4d6c-88b7-1dfb46261cac" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.editorconfig" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.npmrc" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.travis.yml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/LICENSE" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/dist/podio-js.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/app.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/bin/www" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/package.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/public/javascript/authPopup.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/public/javascript/config.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/public/javascript/index.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/public/javascript/sessionStore.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/public/stylesheets/style.css" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/routes/index.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/views/auth_popup.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/client_auth/views/index.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/app.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/bin/www" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/package.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/public/stylesheets/style.css" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/routes/index.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/sessionStore.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/tmp/password.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/views/error.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/views/success.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/password_auth/views/user.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/app.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/bin/www" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/package.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/public/stylesheets/style.css" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/routes/index.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/sessionStore.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/tmp/server.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/views/error.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/views/index.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/views/success.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/views/upload.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/views/upload_success.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/server_auth/views/user.ejs" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/PodioErrors.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/PodioOAuth.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/auth.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/general.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/podio-js.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/transport.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/utils.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/package.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test/auth.spec.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test/general.spec.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test/podio-js.spec.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test/transport.spec.js" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test/utils.spec.js" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/.name" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/podio-js.iml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="podio-js.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -134,11 +81,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="default.html" pinned="false" current-in-tab="true">
+      <file leaf-file-name="default.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/_layouts/default.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.45373666">
+            <state vertical-scroll-proportion="-21.25">
               <caret line="34" column="0" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="6" selection-start-line="0" selection-start-column="6" selection-end-line="0" selection-end-column="6" />
               <folding />
             </state>
           </provider>
@@ -193,6 +150,7 @@
         <option value="$PROJECT_DIR$/errors/index.md" />
         <option value="$PROJECT_DIR$/authentication/index.md" />
         <option value="$PROJECT_DIR$/_layouts/default.html" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -501,8 +459,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/_layouts/default.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.45373666">
+        <state vertical-scroll-proportion="-21.25">
           <caret line="34" column="0" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="6" selection-start-line="0" selection-start-column="6" selection-end-line="0" selection-end-column="6" />
           <folding />
         </state>
       </provider>
