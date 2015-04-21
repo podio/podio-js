@@ -4,15 +4,15 @@
 
 ## Installation
 
-```
-npm install podio-js --save
+```sh
+$ npm install podio-js --save
 ```
 
 ## Usage
 
 #### Node
 
-```
+```js
 var PodioJS = require('podio-js');
 ```
 
@@ -20,16 +20,16 @@ var PodioJS = require('podio-js');
 
 If you are using and AMD/CommonJS compatible module loader you can require the module:
 
-```
+```js
 var PodioJS = require('podio-js');
 ```
 
 If you are not using a loader, browserify `podio-js` like this:
 
-```
-npm install -g browserify
+```sh
+$ npm install -g browserify
 
-npm run bundle
+$ npm run bundle
 ```
 
 and include `dist/podio-js.js` using a `<script>` tag.
