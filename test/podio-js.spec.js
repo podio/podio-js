@@ -5,6 +5,16 @@ describe('podio-js', function() {
   
   describe('constructor', function() {
 
+    it('should have version property', function() {
+      var authOptions = {
+        authType: 'client',
+        clientId: 123,
+      };
+      var instance = new PlatformJS(authOptions);
+
+      expect(instance.VERSION).toEqual(require('../package.json').version);
+    });
+
     it('should set auth data correctly', function() {
       var authOptions = {
         authType: 'server',
