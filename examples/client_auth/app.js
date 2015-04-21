@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/underscore', express.static(path.join(__dirname, '/node_modules/underscore')));
-app.use('/platform', express.static(path.join(__dirname, '../../dist')));
+app.use('/podio', express.static(path.join(__dirname, '../../dist')));
 
 app.use('/', routes);
 

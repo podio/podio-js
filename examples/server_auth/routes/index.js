@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var PlatformJS = require('../../../lib/PlatformJS');
+var PodioJS = require('../../../lib/podio-js');
 var sessionStore = require('../sessionStore');
 var Busboy = require("busboy");
 var temp = require('temp');
@@ -8,7 +8,7 @@ var fs = require('fs');
 
 var clientId = '';      // your clientId here
 var clientSecret = ''   // your clientSecret here;
-var platform = new PlatformJS({ authType: 'server', clientId: clientId, clientSecret: clientSecret }, { sessionStore: sessionStore });
+var podio = new PodioJS({ authType: 'server', clientId: clientId, clientSecret: clientSecret }, { sessionStore: sessionStore });
 
 function getFullURL(req) {
   return req.protocol + '://' + req.get('host') + '/';
@@ -20,12 +20,12 @@ router.get('/', function(req, res) {
   var errorCode = req.query.error;
   var redirectURL = getFullURL(req);
 
-  if (platform.isAuthenticated()) {
+  if (podio.isAuthenticated()) {
     // ready to make API calls
     res.render('success');
   } else {
     if (typeof authCode !== 'undefined') {
-      platform.getAccessToken(authCode, redirectURL, function () {
+      podio.getAccessToken(authCode, redirectURL, function () {
         // we are ready to make API calls
         res.render('success');
       });
@@ -34,14 +34,14 @@ router.get('/', function(req, res) {
       res.render('error', { description: req.query.error_description });
     } else {
       // we have neither an authCode nor have we authenticated before
-      res.render('index', { authUrl: platform.getAuthorizationURL(redirectURL) });
+      res.render('index', { authUrl: podio.getAuthorizationURL(redirectURL) });
     }
   }
 });
 
 router.get('/user', function(req, res) {
-  if (platform.isAuthenticated()) {
-    platform.request('get', '/user/status', null, function(responseData) {
+  if (podio.isAuthenticated()) {
+    podio.request('get', '/user/status', null, function(responseData) {
       res.render('user', { profile: responseData.profile });
     });
   } else {
@@ -56,7 +56,7 @@ router.get('/upload', function(req, res) {
 router.post('/upload', function(req, res) {
   var busboy = new Busboy({ headers: req.headers });
 
-  if (!platform.isAuthenticated()) {
+  if (!podio.isAuthenticated()) {
     res.send(401);
     return;
   }
@@ -72,7 +72,7 @@ router.post('/upload', function(req, res) {
     });
 
     file.on('end', function() {
-      platform.uploadFile(filePath, filename, function(body, response) {
+      podio.uploadFile(filePath, filename, function(body, response) {
         res.render('upload_success', { fileId: body.file_id })
       });
     });

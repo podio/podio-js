@@ -16,4 +16,4 @@
 
   window.close();
 
-})(PlatformJS, SessionStore, PlatformConfig);
+})(PodioJS, SessionStore, PlatformConfig);

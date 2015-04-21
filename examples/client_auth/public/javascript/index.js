@@ -101,4 +101,4 @@
     document.body.innerHTML = compiledSuccess();
   }
 
-})(PlatformJS, SessionStore, PlatformConfig, _);
+})(PodioJS, SessionStore, PlatformConfig, _);
