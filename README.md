@@ -1,51 +1,46 @@
-# PlatformJS
+# podio-js [![Build Status](http://img.shields.io/travis/podio/podio-js.svg?style=flat-square)](https://travis-ci.org/podio/podio-js) [![Dependency Status](http://img.shields.io/gemnasium/podio/podio-js.svg?style=flat-square)](https://gemnasium.com/podio/podio-js) 
 
-Podio Platform JavaScript SDK for NodeJS and the browser
+> Podio JavaScript SDK for Node and the browser
 
 ## Installation
 
 ```
-npm install git+ssh://git@github.com:podio/platformJS.git --save
+npm install podio-js --save
 ```
 
-## Use in NodeJS applications
+## Usage
+
+#### Node
 
 ```
-var PlatformJS = require('PlatformJS');
+var PodioJS = require('podio-js');
 ```
 
-## Use in browser applications
+#### Browser
 
 If you are using and AMD/CommonJS compatible module loader you can require the module:
 
 ```
-var PlatformJS = require('PlatformJS');
+var PodioJS = require('podio-js');
 ```
 
-If you are not using a loader, browserify PlatformJS like this:
+If you are not using a loader, browserify `podio-js` like this:
 
 ```
 npm install -g browserify
 
-npm run-script bundle
+npm run bundle
 ```
 
-and include `dist/PlatformJS.js` using a `<script>` tag.
-
-## Tests
-
-PhantomJS:
-
-```sh
-$ grunt
-```
-
-Node:
-
-```sh
-$ jasmine-node test
-```
+and include `dist/podio-js.js` using a `<script>` tag.
 
 ## Documentation
 
-You will find a detailed documentation at [http://podio.github.io/platformJS/](http://podio.github.io/platformJS/)
+You will find a detailed documentation at [http://podio.github.io/podio-js/](http://podio.github.io/podio-js/) and at [https://developers.podio.com/](https://developers.podio.com/)
+
+
+## Tests
+
+```sh
+$ npm test
+```
