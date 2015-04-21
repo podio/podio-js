@@ -1,6 +1,6 @@
 describe('podio-js', function() {
 
-  var PlatformJS = require('../lib/podio-js');
+  var PodioJS = require('../lib/podio-js');
   var sinon = require('sinon');
   
   describe('constructor', function() {
@@ -10,7 +10,7 @@ describe('podio-js', function() {
         authType: 'client',
         clientId: 123,
       };
-      var instance = new PlatformJS(authOptions);
+      var instance = new PodioJS(authOptions);
 
       expect(instance.VERSION).toEqual(require('../package.json').version);
     });
@@ -21,7 +21,7 @@ describe('podio-js', function() {
         clientId: 123,
         clientSecret: 'abcdef'
       };
-      var instance = new PlatformJS(authOptions);
+      var instance = new PodioJS(authOptions);
 
       expect(instance.authType).toEqual(authOptions.authType);
       expect(instance.clientId).toEqual(authOptions.clientId);
@@ -29,14 +29,14 @@ describe('podio-js', function() {
     });
 
     it('should throw an exception if one of the auth properties is missing', function() {
-      expect(function() { new PlatformJS(); }).toThrow(new Error('Authentication options are missing'));
-      expect(function() { new PlatformJS({}); }).toThrow(new Error('Missing auth property authType'));
-      expect(function() { new PlatformJS({ authType: 'client' }); }).toThrow(new Error('Missing auth property clientId'));
-      expect(function() { new PlatformJS({ authType: 'server', clientId: 123 }); }).toThrow(new Error('Missing auth property clientSecret'));
+      expect(function() { new PodioJS(); }).toThrow(new Error('Authentication options are missing'));
+      expect(function() { new PodioJS({}); }).toThrow(new Error('Missing auth property authType'));
+      expect(function() { new PodioJS({ authType: 'client' }); }).toThrow(new Error('Missing auth property clientId'));
+      expect(function() { new PodioJS({ authType: 'server', clientId: 123 }); }).toThrow(new Error('Missing auth property clientSecret'));
     });
 
     it('should not throw an exception if clientSecret is missing for a client auth', function() {
-      var instance = new PlatformJS({ authType: 'client', clientId: 123 });
+      var instance = new PodioJS({ authType: 'client', clientId: 123 });
 
       expect(instance).toBeDefined();
     });
@@ -46,7 +46,7 @@ describe('podio-js', function() {
         authType: 'client',
         clientId: 123
       };
-      var instance = new PlatformJS(authOptions);
+      var instance = new PodioJS(authOptions);
 
       expect(instance.apiURL).toEqual('https://api.podio.com:443');
     });
@@ -57,7 +57,7 @@ describe('podio-js', function() {
         clientId: 123
       };
       var apiURL = 'https://api2.podio.com';
-      var instance = new PlatformJS(authOptions, { apiURL: apiURL});
+      var instance = new PodioJS(authOptions, { apiURL: apiURL});
 
       expect(instance.apiURL).toEqual(apiURL);
     });
@@ -70,13 +70,13 @@ describe('podio-js', function() {
       var sessionStore = {};
       var instance;
 
-      sinon.stub(PlatformJS.prototype, '_getAuthFromStore');
+      sinon.stub(PodioJS.prototype, '_getAuthFromStore');
 
-      instance = new PlatformJS(authOptions, { sessionStore: sessionStore });
+      instance = new PodioJS(authOptions, { sessionStore: sessionStore });
 
       expect(instance._getAuthFromStore.calledOnce).toBe(true);
 
-      PlatformJS.prototype._getAuthFromStore.restore();
+      PodioJS.prototype._getAuthFromStore.restore();
     });
 
     it('should still set the apiURL to default when a session store is provided', function() {
@@ -87,7 +87,7 @@ describe('podio-js', function() {
       var sessionStore = {
         get: sinon.stub().returns({ accessToken: 123 })
       };
-      var instance = new PlatformJS(authOptions, { sessionStore: sessionStore });
+      var instance = new PodioJS(authOptions, { sessionStore: sessionStore });
 
       expect(instance.apiURL).toEqual('https://api.podio.com:443');
     });
@@ -99,7 +99,7 @@ describe('podio-js', function() {
       };
       var onTokenWillRefresh = function() {};
 
-      var instance = new PlatformJS(authOptions, { onTokenWillRefresh: onTokenWillRefresh });
+      var instance = new PodioJS(authOptions, { onTokenWillRefresh: onTokenWillRefresh });
 
       expect(instance.onTokenWillRefresh).toEqual(onTokenWillRefresh);
     });
