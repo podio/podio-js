@@ -1,6 +1,6 @@
-describe('PlatformJS', function() {
+describe('podio-js', function() {
 
-  var PlatformJS = require('../lib/PlatformJS');
+  var PlatformJS = require('../lib/podio-js');
   var sinon = require('sinon');
   
   describe('constructor', function() {
