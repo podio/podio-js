@@ -319,7 +319,7 @@ describe('auth', function() {
       auth._onAuthResponse(callback, 'authorization_code', url, null, { ok: true, body: 'body' });
 
       expect(callback.calledOnce).toBe(true);
-      expect(callback.calledWithExactly('body')).toBe(true);
+      expect(callback.calledWithExactly(null, 'body')).toBe(true);
     });
 
     it('should raise an exception if authentication failed', function() {
@@ -331,15 +331,18 @@ describe('auth', function() {
         this.url = url;
         this.name = 'PodioAuthorizationError';
       };
-      var res = {
+
+      var response = {
         ok: false,
         body: { error_description: '42' },
         status: 401
       };
 
-      expect(function() {
-        auth._onAuthResponse(null, 'authorization_code', url, new PodioErrors.PodioAuthorizationError(), res);
-      }).toThrow(new PodioAuthorizationError(errorMessage, 401, url));
+      var callback = sinon.stub();
+      auth._onAuthResponse(callback, 'authorization_code', url, new PodioAuthorizationError(errorMessage, 401, url), response);
+
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.calledWithExactly(new PodioAuthorizationError(errorMessage, 401, url), void 0)).toBe(true);
     });
 
   });
