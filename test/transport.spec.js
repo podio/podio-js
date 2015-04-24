@@ -165,7 +165,7 @@ describe('transport', function() {
         ok: true
       };
 
-      transport._onResponse(options, res)
+      transport._onResponse(options, null, res);
 
       expect(options.resolve.calledOnce).toBe(true);
       expect(options.resolve.calledWithExactly(res.body)).toBe(true);
@@ -184,7 +184,8 @@ describe('transport', function() {
       var res = {
         ok: false,
         body: { error_description: 'Error occured' },
-        status: '404'
+        status: '404',
+        err: new Error()
       };
       var expectedArgs = {
         description: res.body.error_description,
@@ -193,7 +194,7 @@ describe('transport', function() {
         url: options.requestParams.url
       };
 
-      transport._onResponse.call(host, options, res);
+      transport._onResponse.call(host, options, new PodioErrors.PodioNotFoundError(), res);
 
       expect(options.reject.calledOnce).toBe(true);
       expect(options.reject.calledWithExactly(expectedArgs)).toBe(true);
@@ -219,10 +220,11 @@ describe('transport', function() {
         body: {
           error_description: 'expired_token'
         },
-        ok: false
+        ok: false,
+        err: new Error()
       };
 
-      transport._onResponse.call(host, options, response);
+      transport._onResponse.call(host, options, new PodioErrors.PodioAuthorizationError(), response);
 
       expect(auth._refreshToken.calledOnce).toBe(true);
       expect(_.isFunction(auth._refreshToken.getCall(0).args[0])).toBe(true);
@@ -234,7 +236,8 @@ describe('transport', function() {
       var res = {
         ok: false,
         body: {},
-        status: 401
+        status: 401,
+        err: new Error()
       };
       var options = {
         requestParams: {},
@@ -244,7 +247,7 @@ describe('transport', function() {
         _handleTransportError: sinon.stub()
       };
 
-      transport._onResponse.call(host, options, res);
+      transport._onResponse.call(host, options, new PodioErrors.PodioAuthorizationError(), res);
 
       expect(host._handleTransportError.calledOnce).toBe(true);
     });
@@ -264,7 +267,7 @@ describe('transport', function() {
         authObject: { authToken: 123 }
       };
 
-      transport._onResponse.call(host, options, res);
+      transport._onResponse.call(host, options, new PodioErrors.PodioAuthorizationError(), res);
 
       expect(host._handleTransportError.calledOnce).toBe(true);
     });
@@ -284,7 +287,7 @@ describe('transport', function() {
         status: '404'
       };
 
-      transport._onResponse.call(host, options, res);
+      transport._onResponse.call(host, options, new PodioErrors.PodioNotFoundError(), res);
 
       expect(host._handleTransportError.called).toBe(false);
     });
