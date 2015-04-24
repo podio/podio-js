@@ -1,3 +1,4 @@
+var PodioErrors = require('../lib/PodioErrors');
 var auth = require('../lib/auth');
 var sinon = require('sinon');
 var _ = require('lodash');
@@ -315,7 +316,7 @@ describe('auth', function() {
       var callback = sinon.stub();
       var url = 'https://api.podio.com:443/oauth/token';
 
-      auth._onAuthResponse(callback, 'authorization_code', url, { ok: true, body: 'body' });
+      auth._onAuthResponse(callback, 'authorization_code', url, null, { ok: true, body: 'body' });
 
       expect(callback.calledOnce).toBe(true);
       expect(callback.calledWithExactly('body')).toBe(true);
@@ -337,7 +338,7 @@ describe('auth', function() {
       };
 
       expect(function() {
-        auth._onAuthResponse(null, 'authorization_code', url, res);
+        auth._onAuthResponse(null, 'authorization_code', url, new PodioErrors.PodioAuthorizationError(), res);
       }).toThrow(new PodioAuthorizationError(errorMessage, 401, url));
     });
 
