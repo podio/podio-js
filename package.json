@@ -1,6 +1,6 @@
 {
   "name": "podio-js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
   "main": "lib/podio-js",
   "scripts": {
