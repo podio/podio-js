@@ -13,7 +13,24 @@ $ npm install podio-js --save
 #### Node
 
 ```js
-var PodioJS = require('podio-js');
+var Podio = require('podio-js').api;
+
+var podio = new Podio({
+  authType: 'server',
+  clientId: 'id',
+  clientSecret: 'secret'
+});
+```
+
+#### Express Middleware
+
+Simple express middleware for storing the Podio token
+
+```js
+app.use(require('podio-js').middleware({
+  clientId: 'id',
+  clientSecret: 'secret'
+}));
 ```
 
 #### Browser
