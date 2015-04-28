@@ -259,6 +259,8 @@ describe('auth', function() {
       auth._onAccessTokenAcquired.call(host, responseData, callback);
 
       expect(callback.calledOnce).toBe(true);
+      expect(callback.getCall(0).args[0]).toEqual(null);
+      expect(callback.getCall(0).args[1]).toEqual(responseData);
     });
 
     it('should not fail trying to call the callback if none is provided', function() {
