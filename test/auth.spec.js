@@ -54,7 +54,14 @@ describe('auth', function() {
         authType: 'client'
       };
 
-      expect(auth.getAccessToken.bind(host)).toThrow(new Error('In authentication types other than server access token is delivered through a redirect'));
+      var callback = sinon.stub();
+
+      auth.getAccessToken.call(host, 'e123', 'http://redirect.url/', callback);
+
+      var expectedError = new Error('In authentication types other than server access token is delivered through a redirect');
+
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.getCall(0).args[0]).toEqual(expectedError);
     });
 
   });
