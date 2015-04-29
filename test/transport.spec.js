@@ -3,6 +3,9 @@ var PodioErrors = require('../lib/PodioErrors');
 var sinon = require('sinon');
 var _ = require('lodash');
 
+var Promise = require('es6-promise');
+Promise = Promise.Promise; // unwrap
+
 describe('transport', function() {
 
   describe('_addRequestData', function() {
@@ -220,7 +223,7 @@ describe('transport', function() {
           refreshToken: 'abc1234'
         },
         _getAuth: sinon.stub().returns(auth),
-        _onTokenRefreshed: sinon.stub(),
+        _onTokenRefreshed: sinon.stub().returns(new Promise(function(){})),
         _handleTransportError: sinon.spy(function () {
           auth._clearAuthentication();
 
@@ -234,7 +237,7 @@ describe('transport', function() {
       expect(auth._refreshToken.calledOnce).toBe(true);
       expect(_.isFunction(auth._refreshToken.getCall(0).args[0])).toBe(true);
       expect(host._onTokenRefreshed.calledOnce).toBe(true);
-      expect(host._onTokenRefreshed.calledWithExactly(options.requestParams, options)).toBe(true);
+      expect(host._onTokenRefreshed.calledWithExactly(options.requestParams)).toBe(true);
     });
 
     it('should handle the error if response was a HTTP 401 but not a token expiration', function() {

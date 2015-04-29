@@ -386,7 +386,7 @@ describe('auth', function() {
           refreshToken: 123
         },
         _authenticate: function(requestData, callback) {
-          callback(responseData);
+          callback(null, responseData);
         },
         _onAccessTokenAcquired: sinon.stub(),
         _clearAuthentication: sinon.stub()
