@@ -4,6 +4,7 @@
   "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
   "main": "lib/index",
   "scripts": {
+    "postinstall": "mkdir -p dist",
     "test": "./node_modules/jasmine-node/bin/jasmine-node test",
     "bundle": "browserify lib/podio-js.js -s PodioJS > dist/podio-js.js"
   },
