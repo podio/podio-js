@@ -228,7 +228,8 @@ describe('transport', function() {
           auth._clearAuthentication();
 
           return podioAuthorizationError;
-        })
+        }),
+        afterTokenRefreshed: sinon.stub()
       };
 
       transport._onResponse.call(host, options, response.err, response);
@@ -238,6 +239,7 @@ describe('transport', function() {
       expect(_.isFunction(auth._refreshToken.getCall(0).args[0])).toBe(true);
       expect(host._onTokenRefreshed.calledOnce).toBe(true);
       expect(host._onTokenRefreshed.calledWithExactly(options.requestParams)).toBe(true);
+      expect(host.afterTokenRefreshed.calledOnce).toBe(true);
     });
 
     it('should handle the error if response was a HTTP 401 but not a token expiration', function() {
