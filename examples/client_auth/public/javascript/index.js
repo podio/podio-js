@@ -73,9 +73,10 @@
     var elmBody = document.body;
 
     if (platform.isAuthenticated()) {
-      platform.request('get', '/user/status', null, function(responseData) {
-        elmBody.innerHTML = compiledUser({ profile: responseData.profile });
-      });
+      platform.request('get', '/user/status')
+        .then(function(responseData) {
+          elmBody.innerHTML = compiledUser({ profile: responseData.profile });
+        });
     } else {
       elmBody.innerHTML = compiledError();
     }
