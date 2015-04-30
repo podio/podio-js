@@ -104,6 +104,18 @@ describe('podio-js', function() {
       expect(instance.onTokenWillRefresh).toEqual(onTokenWillRefresh);
     });
 
+    it('should set afterTokenRefreshed callback', function() {
+      var authOptions = {
+        authType: 'client',
+        clientId: 123
+      };
+      var afterTokenRefreshed = function() {};
+
+      var instance = new PodioJS(authOptions, { afterTokenRefreshed: afterTokenRefreshed });
+
+      expect(instance.afterTokenRefreshed).toEqual(afterTokenRefreshed);
+    });
+
   });
 
 });
