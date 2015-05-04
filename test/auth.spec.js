@@ -7,23 +7,47 @@ describe('auth', function() {
 
   describe('isAuthenticated', function() {
 
-    it('should return true if authObject is populated', function() {
+    it('should resolve if authObject is populated', function(done) {
       var host = {
         authObject: {
           accessToken: 'adbcdegt'
-        }
+        },
+        refreshAuthFromStore: sinon.spy(function (callback) {
+          callback()
+        })
       };
 
-      expect(auth.isAuthenticated.call(host)).toBe(true);
+      auth.isAuthenticated.call(host).then(function () {
+        done();
+      });
     });
 
-    it('should call _hasClientSideRedirect and return false if no authObject exists', function() {
+    it('should reject if authObject is populated', function(done) {
       var host = {
+        authObject: void 0,
+        refreshAuthFromStore: sinon.spy(function (callback) {
+          callback()
+        })
+      };
+
+      auth.isAuthenticated.call(host).catch(function () {
+        done();
+      });
+    });
+
+    it('should call _hasClientSideRedirect and reject if no authObject exists', function(done) {
+      var host = {
+        refreshAuthFromStore: sinon.spy(function (callback) {
+          callback()
+        }),
         _hasClientSideRedirect: sinon.stub().returns(false)
       };
 
-      expect(auth.isAuthenticated.call(host)).toBe(false);
-      expect(host._hasClientSideRedirect.calledOnce).toBe(true);
+      auth.isAuthenticated.call(host).catch(function () {
+        expect(host._hasClientSideRedirect.calledOnce).toBe(true);
+
+        done();
+      });
     });
 
   });
@@ -156,17 +180,20 @@ describe('auth', function() {
 
     it('should get auth data from the session store and store it in memory', function() {
       var authObject = { accessToken: 'e123' };
+      var callback = sinon.stub();
+
       var host = {
         sessionStore: { get: sinon.stub().callsArgWith(1, authObject) },
         authType: 'client'
       };
 
-      auth._getAuthFromStore.call(host);
+      auth._getAuthFromStore.call(host, callback);
 
       expect(host.sessionStore.get.calledOnce).toBe(true);
       expect(host.sessionStore.get.getCall(0).args[0]).toEqual(host.authType);
       expect(_.isFunction(host.sessionStore.get.getCall(0).args[1])).toBe(true);
       expect(host.authObject).toEqual(authObject);
+      expect(callback.calledOnce).toBe(true);
     });
 
   });
