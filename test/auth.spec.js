@@ -26,6 +26,17 @@ describe('auth', function() {
       expect(host._hasClientSideRedirect.calledOnce).toBe(true);
     });
 
+    it('should call refreshAuthFromStore if a callback is provided', function() {
+      var host = {
+        refreshAuthFromStore: sinon.stub().returns(false)
+      };
+      var callback = sinon.stub();
+
+      auth.isAuthenticated.call(host, callback);
+      expect(_.isFunction(callback)).toBe(true);
+      expect(host.refreshAuthFromStore.calledOnce).toBe(true);
+    });
+
   });
 
   describe('getAccessToken', function() {
@@ -60,6 +71,7 @@ describe('auth', function() {
 
       var expectedError = new Error('In authentication types other than server access token is delivered through a redirect');
 
+      expect(_.isFunction(callback)).toBe(true);
       expect(callback.calledOnce).toBe(true);
       expect(callback.getCall(0).args[0]).toEqual(expectedError);
     });
@@ -241,6 +253,20 @@ describe('auth', function() {
       expect(host.sessionStore.get.getCall(0).args[0]).toEqual(host.authType);
       expect(_.isFunction(host.sessionStore.get.getCall(0).args[1])).toBe(true);
       expect(host.authObject).toEqual(authObject);
+    });
+
+    it('should call the callback function if provided', function() {
+      var authObject = { accessToken: 'e123' };
+      var host = {
+        sessionStore: { get: sinon.stub().callsArgWith(1, authObject) },
+        authType: 'client'
+      };
+      var callback = sinon.stub();
+
+      auth._getAuthFromStore.call(host, callback);
+
+      expect(_.isFunction(callback)).toBe(true);
+      expect(callback.calledOnce).toBe(true);
     });
 
   });
