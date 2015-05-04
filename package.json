@@ -30,6 +30,6 @@
     "URIjs": "1.15.0",
     "es6-promise": "2.1.1",
     "lodash": "3.7.0",
-    "superagent": "1.2.0"
+    "superagent": "git://github.com/rpastorelle/superagent.git"
   }
 }
