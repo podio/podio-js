@@ -5,6 +5,7 @@
   "main": "lib/index",
   "scripts": {
     "test": "./node_modules/jasmine-node/bin/jasmine-node test",
+    "coverage": "./node_modules/.bin/istanbul cover ./node_modules/jasmine-node/bin/jasmine-node test",
     "bundle": "browserify lib/podio-js.js -s podio-js > dist/podio-js.js"
   },
   "repository": {
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/podio/podio-js",
   "devDependencies": {
+    "istanbul": "0.3.13",
     "jasmine-node": "1.14.5",
     "sinon": "1.14.1"
   },
