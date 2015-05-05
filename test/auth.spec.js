@@ -66,6 +66,31 @@ describe('auth', function() {
 
   });
 
+  describe('setAccessToken', function() {
+
+    it('should set the OAuth object', function() {
+      var host = {};
+
+      var responseData = {
+        access_token: 'a123',
+        refresh_token: 'b123',
+        expires_in: 4434,
+        ref: {},
+        transfer_token: 'c123'
+      };
+
+      auth.setAccessToken.call(host, responseData);
+
+      expect(host.authObject).not.toEqual(void 0);
+      expect(host.authObject.accessToken).toEqual(responseData.access_token);
+      expect(host.authObject.refreshToken).toEqual(responseData.refresh_token);
+      expect(host.authObject.expiresIn).toEqual(responseData.expires_in);
+      expect(host.authObject.ref).toEqual(responseData.ref);
+      expect(host.authObject.transferToken).toEqual(responseData.transfer_token);
+    });
+
+  });
+
   describe('getAuthorizationURL', function() {
 
     it('should return the correct authorization URL for the client auth', function() {
