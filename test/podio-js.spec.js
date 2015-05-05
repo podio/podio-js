@@ -77,13 +77,13 @@ describe('podio-js', function() {
       var sessionStore = {};
       var instance;
 
-      sinon.stub(PodioJS.prototype, '_getAuthFromStore');
+      sinon.stub(PodioJS.prototype, 'refreshAuthFromStore');
 
       instance = new PodioJS(authOptions, { sessionStore: sessionStore });
 
-      expect(instance._getAuthFromStore.calledOnce).toBe(true);
+      expect(instance.refreshAuthFromStore.calledOnce).toBe(true);
 
-      PodioJS.prototype._getAuthFromStore.restore();
+      PodioJS.prototype.refreshAuthFromStore.restore();
     });
 
     it('should still set the apiURL to default when a session store is provided', function() {
