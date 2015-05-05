@@ -296,6 +296,22 @@ describe('auth', function() {
       expect(callback.calledOnce).toBe(true);
     });
 
+    it('should not call callback if not specified and get auth data from the session store and store it in memory', function() {
+      var authObject = { accessToken: 'e123' };
+
+      var host = {
+        sessionStore: { get: sinon.stub().callsArgWith(1, authObject) },
+        authType: 'client'
+      };
+
+      auth._getAuthFromStore.call(host);
+
+      expect(host.sessionStore.get.calledOnce).toBe(true);
+      expect(host.sessionStore.get.getCall(0).args[0]).toEqual(host.authType);
+      expect(_.isFunction(host.sessionStore.get.getCall(0).args[1])).toBe(true);
+      expect(host.authObject).toEqual(authObject);
+    });
+
   });
 
   describe('_hasClientSideRedirect', function() {
