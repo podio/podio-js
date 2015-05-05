@@ -1,4 +1,4 @@
-# podio-js [![Build Status](http://img.shields.io/travis/podio/podio-js.svg?style=flat-square)](https://travis-ci.org/podio/podio-js) [![Dependency Status](http://img.shields.io/gemnasium/podio/podio-js.svg?style=flat-square)](https://gemnasium.com/podio/podio-js) 
+# podio-js [![Build Status](http://img.shields.io/travis/podio/podio-js.svg?style=flat-square)](https://travis-ci.org/podio/podio-js) [![Dependency Status](http://img.shields.io/gemnasium/podio/podio-js.svg?style=flat-square)](https://gemnasium.com/podio/podio-js) [![Coverage](http://img.shields.io/coveralls/podio/podio-js.svg?style=flat-square)](https://coveralls.io/r/podio/podio-js) 
 
 > Podio JavaScript SDK for Node and the browser
 
