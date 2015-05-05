@@ -22,7 +22,7 @@ describe('PodioOAuth', function() {
       }).toThrow(new Error('Expiration timestamp is missing'));
     });
 
-    iit('should set instance properties', function() {
+    it('should set instance properties', function() {
       var args = {
         accessToken: 'a123',
         refreshToken: 'b123',
