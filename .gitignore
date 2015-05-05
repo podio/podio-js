@@ -6,3 +6,4 @@ Gemfile
 Gemfile.lock
 *.swp
 dist/
+coverage/
