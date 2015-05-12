@@ -177,6 +177,40 @@ describe('auth', function() {
 
   });
 
+  describe('authenticateWithApp', function() {
+
+    it('should call _authenticate with appId, appToken and correct grand type', function() {
+      var host = {
+        _authenticate: sinon.stub()
+      };
+      var expectedData = {
+        grant_type: 'app',
+        app_id: 123,
+        app_token: 'e123'
+      };
+
+      auth.authenticateWithApp.call(host, 123, 'e123');
+
+      expect(host._authenticate.calledOnce).toBe(true);
+      expect(host._authenticate.getCall(0).args[0]).toEqual(expectedData);
+    });
+
+    it('should call _onAccessTokenAcquired with responseData and callback when auth is completed', function() {
+      var authData = { access_token: 'a321' };
+      var callback = function() {};
+      var host = {
+        _authenticate: sinon.stub().callsArgWith(1, authData),
+        _onAccessTokenAcquired: sinon.stub()
+      };
+
+      auth.authenticateWithApp.call(host, 123, 'e123', callback);
+
+      expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
+      expect(host._onAccessTokenAcquired.calledWithExactly(authData, callback)).toBe(true);
+    });
+
+  });
+
   describe('_getAuthFromStore', function() {
 
     it('should get auth data from the session store and store it in memory', function() {
