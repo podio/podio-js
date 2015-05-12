@@ -199,7 +199,7 @@ describe('auth', function() {
       var authData = { access_token: 'a321' };
       var callback = function() {};
       var host = {
-        _authenticate: sinon.stub().callsArgWith(1, authData),
+        _authenticate: sinon.stub().callsArgWith(1, null, authData),
         _onAccessTokenAcquired: sinon.stub()
       };
 
@@ -207,6 +207,21 @@ describe('auth', function() {
 
       expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
       expect(host._onAccessTokenAcquired.calledWithExactly(authData, callback)).toBe(true);
+    });
+
+    it('should not call _onAccessTokenAcquired when auth failed and call the callback', function() {
+      var callback = sinon.stub();
+      var err = new Error();
+      var host = {
+        _authenticate: sinon.stub().callsArgWith(1, err),
+        _onAccessTokenAcquired: sinon.stub()
+      };
+
+      auth.authenticateWithApp.call(host, 123, 'e123', callback);
+
+      expect(host._onAccessTokenAcquired.called).toBe(false);
+      expect(callback.called).toBe(true);
+      expect(callback.calledWithExactly(err)).toBe(true);
     });
 
   });
