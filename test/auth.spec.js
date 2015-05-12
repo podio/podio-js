@@ -209,17 +209,19 @@ describe('auth', function() {
       expect(host._onAccessTokenAcquired.calledWithExactly(authData, callback)).toBe(true);
     });
 
-    it('should not call _onAccessTokenAcquired when auth failed', function() {
+    it('should not call _onAccessTokenAcquired when auth failed and call the callback', function() {
       var callback = sinon.stub();
+      var err = new Error();
       var host = {
-        _authenticate: sinon.stub().callsArgWith(1, new Error()),
+        _authenticate: sinon.stub().callsArgWith(1, err),
         _onAccessTokenAcquired: sinon.stub()
       };
 
       auth.authenticateWithApp.call(host, 123, 'e123', callback);
 
       expect(host._onAccessTokenAcquired.called).toBe(false);
-      expect(callback.called).toBe(false);
+      expect(callback.called).toBe(true);
+      expect(callback.calledWithExactly(err)).toBe(true);
     });
 
   });
