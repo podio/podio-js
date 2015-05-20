@@ -25,14 +25,14 @@
   "homepage": "https://github.com/podio/podio-js",
   "devDependencies": {
     "coveralls": "2.11.2",
-    "istanbul": "0.3.13",
+    "istanbul": "0.3.14",
     "jasmine-node": "1.14.5",
     "sinon": "1.14.1"
   },
   "dependencies": {
     "URIjs": "1.15.1",
     "es6-promise": "2.1.1",
-    "lodash": "3.8.0",
+    "lodash": "3.9.1",
     "superagent": "1.2.0"
   }
 }
