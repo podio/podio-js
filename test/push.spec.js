@@ -13,7 +13,7 @@ describe('push', function() {
     it('should correctly set and return the client', function(){
 
       var host = {
-        apiUrl: 'https://api.podio.com'
+        apiURL: 'https://api.podio.com'
       };
 
       var returnedClient = pushLib._getFayeClient.call(host);
