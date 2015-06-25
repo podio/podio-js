@@ -50,6 +50,17 @@ describe('auth', function() {
       });
     });
 
+    it('should call refreshAuthFromStore if a callback is provided', function() {
+      var host = {
+        refreshAuthFromStore: sinon.stub().returns(false)
+      };
+      var callback = sinon.stub();
+
+      auth.isAuthenticated.call(host, callback);
+      expect(_.isFunction(callback)).toBe(true);
+      expect(host.refreshAuthFromStore.calledOnce).toBe(true);
+    });
+
   });
 
   describe('getAccessToken', function() {
@@ -84,8 +95,34 @@ describe('auth', function() {
 
       var expectedError = new Error('In authentication types other than server access token is delivered through a redirect');
 
+      expect(_.isFunction(callback)).toBe(true);
       expect(callback.calledOnce).toBe(true);
       expect(callback.getCall(0).args[0]).toEqual(expectedError);
+    });
+
+  });
+
+  describe('setAccessToken', function() {
+
+    it('should set the OAuth object', function() {
+      var host = {};
+
+      var responseData = {
+        access_token: 'a123',
+        refresh_token: 'b123',
+        expires_in: 4434,
+        ref: {},
+        transfer_token: 'c123'
+      };
+
+      auth.setAccessToken.call(host, responseData);
+
+      expect(host.authObject).not.toEqual(void 0);
+      expect(host.authObject.accessToken).toEqual(responseData.access_token);
+      expect(host.authObject.refreshToken).toEqual(responseData.refresh_token);
+      expect(host.authObject.expiresIn).toEqual(responseData.expires_in);
+      expect(host.authObject.ref).toEqual(responseData.ref);
+      expect(host.authObject.transferToken).toEqual(responseData.transfer_token);
     });
 
   });
@@ -176,6 +213,55 @@ describe('auth', function() {
 
   });
 
+  describe('authenticateWithApp', function() {
+
+    it('should call _authenticate with appId, appToken and correct grand type', function() {
+      var host = {
+        _authenticate: sinon.stub()
+      };
+      var expectedData = {
+        grant_type: 'app',
+        app_id: 123,
+        app_token: 'e123'
+      };
+
+      auth.authenticateWithApp.call(host, 123, 'e123');
+
+      expect(host._authenticate.calledOnce).toBe(true);
+      expect(host._authenticate.getCall(0).args[0]).toEqual(expectedData);
+    });
+
+    it('should call _onAccessTokenAcquired with responseData and callback when auth is completed', function() {
+      var authData = { access_token: 'a321' };
+      var callback = function() {};
+      var host = {
+        _authenticate: sinon.stub().callsArgWith(1, null, authData),
+        _onAccessTokenAcquired: sinon.stub()
+      };
+
+      auth.authenticateWithApp.call(host, 123, 'e123', callback);
+
+      expect(host._onAccessTokenAcquired.calledOnce).toBe(true);
+      expect(host._onAccessTokenAcquired.calledWithExactly(authData, callback)).toBe(true);
+    });
+
+    it('should not call _onAccessTokenAcquired when auth failed and call the callback', function() {
+      var callback = sinon.stub();
+      var err = new Error();
+      var host = {
+        _authenticate: sinon.stub().callsArgWith(1, err),
+        _onAccessTokenAcquired: sinon.stub()
+      };
+
+      auth.authenticateWithApp.call(host, 123, 'e123', callback);
+
+      expect(host._onAccessTokenAcquired.called).toBe(false);
+      expect(callback.called).toBe(true);
+      expect(callback.calledWithExactly(err)).toBe(true);
+    });
+
+  });
+
   describe('_getAuthFromStore', function() {
 
     it('should get auth data from the session store and store it in memory', function() {
@@ -193,6 +279,20 @@ describe('auth', function() {
       expect(host.sessionStore.get.getCall(0).args[0]).toEqual(host.authType);
       expect(_.isFunction(host.sessionStore.get.getCall(0).args[1])).toBe(true);
       expect(host.authObject).toEqual(authObject);
+      expect(callback.calledOnce).toBe(true);
+    });
+
+    it('should call the callback function if provided', function() {
+      var authObject = { accessToken: 'e123' };
+      var host = {
+        sessionStore: { get: sinon.stub().callsArgWith(1, authObject) },
+        authType: 'client'
+      };
+      var callback = sinon.stub();
+
+      auth._getAuthFromStore.call(host, callback);
+
+      expect(_.isFunction(callback)).toBe(true);
       expect(callback.calledOnce).toBe(true);
     });
 

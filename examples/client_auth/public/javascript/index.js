@@ -1,7 +1,7 @@
-(function(PlatformJS, SessionStore, PlatformConfig, _) {
+(function(PodioJS, SessionStore, PlatformConfig, _) {
 
   var clientId = PlatformConfig.clientId;
-  var platform = new PlatformJS({ authType: 'client', clientId: clientId }, { sessionStore: SessionStore, onTokenWillRefresh: onTokenWillRefresh });
+  var platform = new PodioJS({ authType: 'client', clientId: clientId }, { sessionStore: SessionStore, onTokenWillRefresh: onTokenWillRefresh });
 
   var redirectURL = window.location.href + 'auth_popup';
   var compiledSuccess = _.template('<h1>Success!</h1><p>You are now authenticated to do API calls to Platform</p><a href="#" id="request-user">Make a /user request</a>');
@@ -73,9 +73,10 @@
     var elmBody = document.body;
 
     if (platform.isAuthenticated()) {
-      platform.request('get', '/user/status', null, function(responseData) {
-        elmBody.innerHTML = compiledUser({ profile: responseData.profile });
-      });
+      platform.request('get', '/user/status')
+        .then(function(responseData) {
+          elmBody.innerHTML = compiledUser({ profile: responseData.profile });
+        });
     } else {
       elmBody.innerHTML = compiledError();
     }

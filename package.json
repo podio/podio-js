@@ -1,11 +1,12 @@
 {
   "name": "podio-js",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Podio Platform JavaScript SDK for NodeJS and the browser",
   "main": "lib/index",
   "scripts": {
     "test": "./node_modules/jasmine-node/bin/jasmine-node test",
-    "bundle": "browserify lib/podio-js.js -s podio-js > dist/podio-js.js"
+    "coverage": "./node_modules/.bin/istanbul cover ./node_modules/jasmine-node/bin/jasmine-node test",
+    "bundle": "mkdir -p dist && browserify lib/podio-js.js -s PodioJS > dist/podio-js.js"
   },
   "repository": {
     "type": "git",
@@ -23,14 +24,16 @@
   },
   "homepage": "https://github.com/podio/podio-js",
   "devDependencies": {
+    "coveralls": "2.11.2",
+    "istanbul": "0.3.15",
     "jasmine-node": "1.14.5",
-    "sinon": "1.14.1"
+    "sinon": "1.15.3"
   },
   "dependencies": {
-    "URIjs": "1.15.0",
-    "es6-promise": "2.1.1",
-    "lodash": "3.7.0",
-    "superagent": "git://github.com/rpastorelle/superagent.git",
-    "faye": "^1.1.1"
+    "faye": "^1.1.1",
+    "URIjs": "1.15.1",
+    "es6-promise": "2.3.0",
+    "lodash": "3.9.3",
+    "superagent": "1.2.0"
   }
 }
