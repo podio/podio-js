@@ -12,6 +12,9 @@
     "type": "git",
     "url": "https://github.com/podio/podio-js.git"
   },
+  "contributors": [
+    "Marc Høegh <marc.hoegh@hoisthq.com>"
+  ],
   "keywords": [
     "podio",
     "beagle",
