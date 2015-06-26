@@ -1,3 +1,5 @@
+var Promise = require('es6-promise');
+    Promise = Promise.Promise; // unwrap
 var pushLib = require('../lib/push');
 var PodioErrors = require('../lib/PodioErrors');
 var sinon = require('sinon');
@@ -30,7 +32,7 @@ describe('push', function() {
 
       var host = {
         _getAuth: sinon.stub().returns({
-          isAuthenticated: sinon.stub().returns(false)
+          isAuthenticated: sinon.stub().returns(Promise.reject())
         })
       };
       
@@ -43,10 +45,13 @@ describe('push', function() {
 
       var subscription = pushLib.push.call(host, options).subscribe(new Function());
 
-      subscription.catch(function(err) {
-        expect(err).toEqual(new PodioErrors.PodioForbiddenError('Authentication has not been performed'));
+      subscription.then(function(){
+        // Should not be called
+        expect('Authentication should not pass').toBe(false);
+      }).catch(function(err) {
         done();
       });
+
     });
   
     it ('should resolve if authentication has been performed', function() {
@@ -59,7 +64,7 @@ describe('push', function() {
         }),
         
         _getAuth: sinon.stub().returns({
-          isAuthenticated: sinon.stub().returns(true)
+          isAuthenticated: sinon.stub().returns(Promise.resolve())
         })
       };
 
@@ -74,8 +79,12 @@ describe('push', function() {
 
       var subscription = pushLib.push.call(host, options).subscribe(handler);
 
-      expect(subscribeSpy.calledWith(options.channel, handler)).toBe(true);
+      subscription.then(function() {
+        // Assert that the Faye client is properly subscribed to
+        expect(subscribeSpy.calledWith(options.channel, handler)).toBe(true);
+      }).catch(function(err) {
+        expect('There should not be an error').toBe(false);
+      });
     });
-
   });
 })
