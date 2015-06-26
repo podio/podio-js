@@ -22,6 +22,10 @@ Please note if your are not using NPM you will have to include the following dep
 * [URIjs](http://medialize.github.io/URI.js/)
 * [Superagent](http://visionmedia.github.io/superagent/)
 
+If you intend to use the Push Service API, then you should also include the following dependency:
+
+* [Faye](http://faye.jcoglan.com/browser.html)
+
 # Usage
 
 podio-js can be integrated using an AMD loader like RequireJS or a CommonJS loader compatible with `module.exports` (like the NodeJS module system). It can be required like this:

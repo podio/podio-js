@@ -7,7 +7,7 @@ Detailed documentation on how the service works can be found at [https://develop
 
 After you [authenticated](http://podio.github.io/platformJS/authentication/) successfully you can start subscribing to push events using the `push` method.
 
-This method simple accepts the 'push object' that is attached to relavant carrier objects in API request responses:
+This method simply accepts the 'push object' that is attached to the relavant carrier objects in API call responses:
 
 Parameter      | Description
 :------------- | :-------------
@@ -43,4 +43,4 @@ podio.request('get','/user/status').then(function(responseBody) {
 });
 {% endhighlight %}
 
-See [this detailed example](https://github.com/podio/podio-js/tree/master/examples/push_service/) for some actual working code including authentication.
+See [this detailed example](https://github.com/podio/podio-js/tree/master/examples/push_service/) for some  working code including authentication.
