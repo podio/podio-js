@@ -5,22 +5,15 @@ describe('podio-js', function() {
   
   describe('constructor', function() {
 
-    /*
-     * Hardcoding the version for now, due to this issue:
-     * https://github.com/facebook/react-native/issues/773
-     *
     it('should have version property', function() {
-      var VERSION = require('pkginfo')(module).version;
-
       var authOptions = {
         authType: 'client',
         clientId: 123,
       };
       var instance = new PodioJS(authOptions);
 
-      expect(instance.VERSION).toEqual(VERSION);
+      expect(instance.VERSION).toEqual(require('../package.json').version);
     });
-    */
 
     it('should set auth data correctly', function() {
       var authOptions = {
