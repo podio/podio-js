@@ -15,16 +15,16 @@ pushObject     | Object containing information needed for connecting
 
 The `push` method returns an object with a method `subscribe`. 
 
-You need to call `subscribe` to create a new subscription and pass to it a function that you would like invoked, whenever push events for this subscription are incoming:
+You need to call `subscribe` to create a new subscription, and pass to it a function that you would like invoked whenever push events for this subscription are incoming:
 
 Parameter      | Description
 :------------- | :-------------
 handler        | Function called when messages are incoming for this subscription
 
-The subscribe method returns a promise that resolves when the connection is established (incoming events will be registered before then). If it is rejected, it means the connection could not be established for some reason. Maybe the user was not properly authenticated.
+The `subscribe` method returns a promise that resolves when the connection is established (incoming events will **not** be registered before then). If it is rejected, it means the connection could not be established for some reason. One reason could be missing authentication.
 
 # Example
-This example demonstrates how to subscribe to all incoming events for the User carrier object of the authenticated user:
+This example demonstrates how to subscribe to all incoming events for the *User* carrier object of the authenticated user:
 {% highlight javascript %}
   
 // Make API request to get push object
@@ -44,3 +44,7 @@ podio.request('get','/user/status').then(function(responseBody) {
 {% endhighlight %}
 
 See [this detailed example](https://github.com/podio/podio-js/tree/master/examples/push_service/) for some  working code including authentication.
+
+***
+
+**NOTE:** The push service API only supports subscribing to incoming events. It is not possible to publish  events to Podio.
