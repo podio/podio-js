@@ -5,7 +5,7 @@ A simple example script that demonstrates using podio-js to subscribe to Podio's
 It works be creating two instances of the SDK and logging a different user in to each of them.
 User #1 subscribes to push events for new unread notifications and user #2 then assigns a task to user #1, thereby triggering a notification to be sent to user #1.
 
-We verify that we receive this notification and then exists the script.
+We verify that we receive this notification and then exits the script.
 
 # Installation
 
