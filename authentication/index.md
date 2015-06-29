@@ -60,25 +60,25 @@ var podio = new PodioJS({
 });
 var redirectURL = 'https://www.myapp.com';
 
-// your request handler, for example in ExpressJS
+// Your request handler (for example in ExpressJS)
 var action = function(request, response) {
-  var authCode = request.query.code;
-  var errorCode = request.query.error;
+var authCode = request.query.code;
+var errorCode = request.query.error;
 
-  if (podio.isAuthenticated()) {
-    // ready to make API calls 
+podio.isAuthenticated().then(function() {
+  // Ready to make API calls...
+}).catch(function(err) {
+
+  if (typeof authCode !== 'undefined') {
+    podio.getAccessToken(authCode, redirectURL, function(err, response) {
+      // make API calls here 
+    }); 
+  } else if (typeof errorCode !== 'undefined') {
+    // a problem occured
+    console.log(request.query.error_description);
   } else {
-    if (typeof authCode !== 'undefined') {
-      podio.getAccessToken(authCode, redirectURL, function() {
-        // make API calls here 
-      }); 
-    } else if (typeof errorCode !== 'undefined') {
-      // a problem occured
-      console.log(request.query.error_description);
-    } else {
-      // start authentication via link or redirect
-      console.log(podio.getAuthorizationURL(redirectURL));
-    }
+    // start authentication via link or redirect
+    console.log(podio.getAuthorizationURL(redirectURL));
   }
 });
 {% endhighlight %}
