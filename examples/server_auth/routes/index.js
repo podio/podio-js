@@ -6,8 +6,8 @@ var Busboy = require("busboy");
 var temp = require('temp');
 var fs = require('fs');
 
-var clientId = '';      // your clientId here
-var clientSecret = ''   // your clientSecret here;
+var clientId = 'marc-test';      // your clientId here
+var clientSecret = 'IXdBmtpq43jnV0xbWKszDc9vSjqAyROYeFrVjcnMnLO0c0ymHBDF0aRJZmFY5Gn8'   // your clientSecret here;
 var podio = new PodioJS({ authType: 'server', clientId: clientId, clientSecret: clientSecret }, { sessionStore: sessionStore });
 
 function getFullURL(req) {
@@ -20,12 +20,14 @@ router.get('/', function(req, res) {
   var errorCode = req.query.error;
   var redirectURL = getFullURL(req);
 
-  if (podio.isAuthenticated()) {
+  podio.isAuthenticated()
+  .then(function () {
     // ready to make API calls
     res.render('success');
-  } else {
+  }).catch(function () {
+
     if (typeof authCode !== 'undefined') {
-      podio.getAccessToken(authCode, redirectURL, function () {
+      podio.getAccessToken(authCode, redirectURL, function (err) {
         // we are ready to make API calls
         res.render('success');
       });
@@ -36,17 +38,21 @@ router.get('/', function(req, res) {
       // we have neither an authCode nor have we authenticated before
       res.render('index', { authUrl: podio.getAuthorizationURL(redirectURL) });
     }
-  }
+  });
 });
 
 router.get('/user', function(req, res) {
-  if (podio.isAuthenticated()) {
-    podio.request('get', '/user/status', null, function(responseData) {
-      res.render('user', { profile: responseData.profile });
-    });
-  } else {
+ 
+  podio.isAuthenticated()
+  .then(function() {
+    return podio.request('get', '/user/status');
+  })
+  .then(function(responseData) {
+    res.render('user', { profile: responseData.profile });    
+  })
+  .catch(function(err) {
     res.send(401);
-  }
+  });
 });
 
 router.get('/upload', function(req, res) {
@@ -56,29 +62,35 @@ router.get('/upload', function(req, res) {
 router.post('/upload', function(req, res) {
   var busboy = new Busboy({ headers: req.headers });
 
-  if (!podio.isAuthenticated()) {
-    res.send(401);
-    return;
-  }
+  podio.isAuthenticated()
+  .then(function() {
 
-  busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-    var dir = temp.mkdirSync();
-    var filePath = dir + '/' + filename;
+    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
 
-    fs.writeFileSync(filePath, '');
+      var dir = temp.mkdirSync();
+      var filePath = dir + '/' + filename;
 
-    file.on('data', function(data) {
-      fs.appendFileSync(filePath, data);
-    });
+      fs.writeFileSync(filePath, '');
 
-    file.on('end', function() {
-      podio.uploadFile(filePath, filename, function(body, response) {
-        res.render('upload_success', { fileId: body.file_id })
+      file.on('data', function(data) {
+        fs.appendFileSync(filePath, data);
+      });
+
+      file.on('end', function() {
+        podio.uploadFile(filePath, filename)
+        .then(function(body, response) {
+          res.render('upload_success', { fileId: body.file_id })
+        })
+        .catch(function (err) {
+          res.end(String(err));
+        });
       });
     });
+    req.pipe(busboy);
+  })
+  .catch(function () {
+    res.send(401);
   });
-
-  req.pipe(busboy);
 });
 
 module.exports = router;
