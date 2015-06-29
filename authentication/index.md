@@ -98,14 +98,16 @@ var redirectURL = 'https://www.myapp.com';
 
 // isAuthenticated either gets the cached accessToken 
 // or will check whether it is present in the hash fragment
-if (podio.isAuthenticated()) {
-  // ready to make API calls
-} else if (podio.hasAuthError()) {
-  console.log(podio.getAuthError());
-} else {
-  // start authentication via link or redirect
-  console.log(platform.getAuthorizationURL(redirectURL));
-}
+podio.isAuthenticated().then(function(){
+  // ready to make API calls...
+}).catch(function(){
+  if (podio.hasAuthError()) {
+    console.log(podio.getAuthError());
+  } else {
+    // start authentication via link or redirect
+    console.log(platform.getAuthorizationURL(redirectURL));
+  }
+});
 {% endhighlight %}
 
 At this point there is no support for automatic token refresh in the Podio API. A callback handler can be registered with a `onTokenWillRefresh` option passed in to the podio-js SDK on initialization. We recommend using this handler
