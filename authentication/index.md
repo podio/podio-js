@@ -60,25 +60,25 @@ var podio = new PodioJS({
 });
 var redirectURL = 'https://www.myapp.com';
 
-// your request handler, for example in ExpressJS
+// Your request handler (for example in ExpressJS)
 var action = function(request, response) {
-  var authCode = request.query.code;
-  var errorCode = request.query.error;
+var authCode = request.query.code;
+var errorCode = request.query.error;
 
-  if (podio.isAuthenticated()) {
-    // ready to make API calls 
+podio.isAuthenticated().then(function() {
+  // Ready to make API calls...
+}).catch(function(err) {
+
+  if (typeof authCode !== 'undefined') {
+    podio.getAccessToken(authCode, redirectURL, function(err, response) {
+      // make API calls here 
+    }); 
+  } else if (typeof errorCode !== 'undefined') {
+    // a problem occured
+    console.log(request.query.error_description);
   } else {
-    if (typeof authCode !== 'undefined') {
-      podio.getAccessToken(authCode, redirectURL, function() {
-        // make API calls here 
-      }); 
-    } else if (typeof errorCode !== 'undefined') {
-      // a problem occured
-      console.log(request.query.error_description);
-    } else {
-      // start authentication via link or redirect
-      console.log(podio.getAuthorizationURL(redirectURL));
-    }
+    // start authentication via link or redirect
+    console.log(podio.getAuthorizationURL(redirectURL));
   }
 });
 {% endhighlight %}
@@ -98,14 +98,16 @@ var redirectURL = 'https://www.myapp.com';
 
 // isAuthenticated either gets the cached accessToken 
 // or will check whether it is present in the hash fragment
-if (podio.isAuthenticated()) {
-  // ready to make API calls
-} else if (podio.hasAuthError()) {
-  console.log(podio.getAuthError());
-} else {
-  // start authentication via link or redirect
-  console.log(platform.getAuthorizationURL(redirectURL));
-}
+podio.isAuthenticated().then(function(){
+  // ready to make API calls...
+}).catch(function(){
+  if (podio.hasAuthError()) {
+    console.log(podio.getAuthError());
+  } else {
+    // start authentication via link or redirect
+    console.log(platform.getAuthorizationURL(redirectURL));
+  }
+});
 {% endhighlight %}
 
 At this point there is no support for automatic token refresh in the Podio API. A callback handler can be registered with a `onTokenWillRefresh` option passed in to the podio-js SDK on initialization. We recommend using this handler
@@ -123,13 +125,13 @@ var podio = new PodioJS({
 var username = <your username>;
 var password = <your password>;
 
-if (podio.isAuthenticated()) {
-  // ready to make API calls
-} else {
+podio.isAuthenticated().then(function() {
+  // Ready to make API calls...  
+}).catch(function(err) {
   podio.authenticateWithCredentials(username, password, function() {
-    // make API calls here
+    // Make API calls here...
   });
-}
+});
 {% endhighlight %}
 
 It is considered a bad practice to store user credentials in the client side JavaScript. Please see an [example](https://github.com/podio/podio-js/tree/master/examples/password_auth) of how password authentication can be implemented.
