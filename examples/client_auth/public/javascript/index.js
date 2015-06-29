@@ -46,8 +46,8 @@
   function onStartAuthClick(e) {
     var elmBody = document.body;
 
-    if (!platform.isAuthenticated()) {
-      // methods are registered globally for the popup to call on this main window
+    platform.isAuthenticated().catch(function (err) {
+        // methods are registered globally for the popup to call on this main window
       window.onAuthCompleted = function() {
         // the platform SDK instance from the popup has
         // received a new auth token and saved it to the store.
@@ -61,7 +61,7 @@
       };
 
       openPopup();
-    }
+    });
   }
 
   /***
@@ -72,14 +72,14 @@
   function onRequestUserClick(e) {
     var elmBody = document.body;
 
-    if (platform.isAuthenticated()) {
+    platform.isAuthenticated().then(function () {
       platform.request('get', '/user/status')
-        .then(function(responseData) {
-          elmBody.innerHTML = compiledUser({ profile: responseData.profile });
-        });
-    } else {
+      .then(function(responseData) {
+        elmBody.innerHTML = compiledUser({ profile: responseData.profile });
+      });
+    }).catch(function () {
       elmBody.innerHTML = compiledError();
-    }
+    });
   }
 
   // Use event delegation
@@ -98,8 +98,8 @@
   // replace the content with a success template
   // if we had authenticated previously and auth tokens
   // are available in the store
-  if (platform.isAuthenticated()) {
+  platform.isAuthenticated().then(function () {
     document.body.innerHTML = compiledSuccess();
-  }
+  });
 
 })(PodioJS, SessionStore, PlatformConfig, _);
