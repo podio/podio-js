@@ -9,17 +9,17 @@ After you [authenticated](http://podio.github.io/platformJS/authentication/) suc
 
 This method simply accepts the 'push object' that is attached to the relavant carrier objects in API call responses:
 
-Parameter      | Description
-:------------- | :-------------
-pushObject     | Object containing information needed for connecting
+Parameter      | Type     | Description
+:------------- | :------- | :-------------
+pushObject     | Object   | Contains information needed for connecting
 
 The `push` method returns an object with a method `subscribe`. 
 
 You need to call `subscribe` to create a new subscription, and pass to it a function that you would like invoked whenever push events for this subscription are incoming:
 
-Parameter      | Description
-:------------- | :-------------
-handler        | Function called when messages are incoming for this subscription
+Parameter      | Type     | Description
+:------------- | :------- | :-------------
+handler        | Function | Invoked on incoming messages for its subscription
 
 The `subscribe` method returns a promise that resolves when the connection is established (incoming events will **not** be registered before then). If it is rejected, it means the connection could not be established for some reason. One reason could be missing authentication.
 
