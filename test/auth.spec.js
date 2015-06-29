@@ -198,7 +198,7 @@ describe('auth', function() {
     it('should call onAccessTokenAcquired with correct parameters when authentication succeeds', function() {
       var responseData = {};
       var host = {
-        _authenticate: sinon.stub().callsArgWith(1, responseData),
+        _authenticate: sinon.stub().callsArgWith(1, null, responseData),
         _onAccessTokenAcquired: sinon.stub()
       };
       var username = 'user@podio.com';
