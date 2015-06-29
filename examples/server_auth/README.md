@@ -8,7 +8,13 @@ A simple example app for server-side authentication against the Platform API.
 npm install
 ```
 
-Make sure to add your clientId and clientSecret to the [routes file](https://github.com/podio/podio-js/blob/master/examples/server_auth/routes/index.js#L9-L10).
+Make sure to add your client ID and client secret in a new file ```./config.json```. It should have the following format:
+```
+{
+  "clientId": "<Your client ID>",
+  "clientSecret": "<Your client secret>"
+}
+```
 
 # Server
 

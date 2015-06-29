@@ -6,8 +6,17 @@ var Busboy = require("busboy");
 var temp = require('temp');
 var fs = require('fs');
 
-var clientId = 'marc-test';      // your clientId here
-var clientSecret = 'IXdBmtpq43jnV0xbWKszDc9vSjqAyROYeFrVjcnMnLO0c0ymHBDF0aRJZmFY5Gn8'   // your clientSecret here;
+// Remember to place a file in this folder called 'config.json',
+// with the contents formatted like so:
+// {
+//   "clientId": "<Your client ID>",
+//   "clientSecret": "<Your client secret>""
+// }
+var config = JSON.parse(fs.readFileSync('./config.json'));
+
+var clientId = config.clientId;
+var clientSecret = config.clientSecret;
+
 var podio = new PodioJS({ authType: 'server', clientId: clientId, clientSecret: clientSecret }, { sessionStore: sessionStore });
 
 function getFullURL(req) {
