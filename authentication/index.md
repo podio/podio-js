@@ -125,13 +125,13 @@ var podio = new PodioJS({
 var username = <your username>;
 var password = <your password>;
 
-if (podio.isAuthenticated()) {
-  // ready to make API calls
-} else {
+podio.isAuthenticated().then(function() {
+  // Ready to make API calls...  
+}).catch(function(err) {
   podio.authenticateWithCredentials(username, password, function() {
-    // make API calls here
+    // Make API calls here...
   });
-}
+});
 {% endhighlight %}
 
 It is considered a bad practice to store user credentials in the client side JavaScript. Please see an [example](https://github.com/podio/podio-js/tree/master/examples/password_auth) of how password authentication can be implemented.
