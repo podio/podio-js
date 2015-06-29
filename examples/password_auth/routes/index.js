@@ -3,19 +3,24 @@ var domain = require('domain');
 var router = express.Router();
 var PodioJS = require('../../../lib/podio-js');
 var sessionStore = require('../sessionStore');
+var fs = require('fs');
 
-var clientId = '';       // your clientId here
-var clientSecret = '';   // your clientSecret here;
-var username = '';       // your username here;
-var password = '';       // your password here
+var config = JSON.parse(fs.readFileSync('./config.json'));
+
+var clientId = config.clientId;
+var clientSecret = config.clientSecret;
+var username = config.username;
+var password = config.password;
 var podio = new PodioJS({ authType: 'password', clientId: clientId, clientSecret: clientSecret }, { sessionStore: sessionStore });
 
 /* GET home page. */
 router.get('/', function(req, res) {
-  if (podio.isAuthenticated()) {
+
+  podio.isAuthenticated().then(function () {
     // ready to make API calls
     res.render('success');
-  } else {
+  }).catch(function (err) {
+
     var reqdomain = domain.create();
 
     reqdomain.on('error', function(e) {
@@ -33,17 +38,20 @@ router.get('/', function(req, res) {
         res.render('success');
       });
     });
-  }
+  });
 });
 
 router.get('/user', function(req, res) {
-  if (podio.isAuthenticated()) {
-    podio.request('get', '/user/status', null, function(responseData) {
-      res.render('user', { profile: responseData.profile });
-    });
-  } else {
+  
+  podio.isAuthenticated().then(function () {
+    return podio.request('get', '/user/status');
+  })
+  .then(function(responseData) {
+    res.render('user', { profile: responseData.profile });
+  })
+  .catch(function () {
     res.send(401);
-  }
+  });
 });
 
 module.exports = router;
