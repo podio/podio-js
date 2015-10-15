@@ -11,6 +11,7 @@ var podio1 = new PodioJS({
   clientSecret: config.clientSecret
 }, {
     apiURL: config.apiURL,
+    enablePushService: true
 });
 
 var podio2 = new PodioJS({
@@ -19,6 +20,8 @@ var podio2 = new PodioJS({
   clientSecret: config.clientSecret
 }, {
     apiURL: config.apiURL,
+    enablePushService: true
+
 });
 
 function handleError (err) {
@@ -56,7 +59,7 @@ async.parallel([
   if (err) { handleError(err); }
 
   var user1Data = results[0];
-  
+
   // Create the subscription for user 1 to listen for notifications.
   // More specifically the event type 'notification_unread'
   podio1.push(user1Data.push).subscribe(onNotificationReceived)

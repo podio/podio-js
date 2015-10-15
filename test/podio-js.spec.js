@@ -116,6 +116,40 @@ describe('podio-js', function() {
       expect(instance.afterTokenRefreshed).toEqual(afterTokenRefreshed);
     });
 
-  });
+    it('should no include Push Service functionality by default', function() {
 
+      var authOptions = {
+        authType: 'client',
+        clientId: 123
+      };
+
+      var instance = new PodioJS(authOptions);
+
+      expect(instance.push).toBeUndefined();
+      expect(instance._getSubscription).toBeUndefined();
+      expect(instance._setSubscription).toBeUndefined();
+      expect(instance._fayeExtensionOutgoing).toBeUndefined();
+      expect(instance._getFayeClient).toBeUndefined();
+    });
+
+    it('should include Push Service functionality when .enablePushService is true', function() {
+
+      var authOptions = {
+        authType: 'client',
+        clientId: 123
+      };
+
+      var options = {
+        enablePushService: true
+      };
+
+      var instance = new PodioJS(authOptions, options);
+
+      expect(instance.push).toBeDefined();
+      expect(instance._getSubscription).toBeDefined();
+      expect(instance._setSubscription).toBeDefined();
+      expect(instance._fayeExtensionOutgoing).toBeDefined();
+      expect(instance._getFayeClient).toBeDefined();
+    });
+  });
 });
