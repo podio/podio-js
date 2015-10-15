@@ -12,7 +12,7 @@ describe('push', function() {
   
   describe('_getFayeClient', function() {
 
-    it('should initialize, set and return client, when it hasn\'t yet been set', function(){
+    it('should initialize, set and return client, when it hasn\'t yet been set', function() {
 
       var host = {
         apiURL: 'https://api.podio.com'
@@ -22,10 +22,10 @@ describe('push', function() {
       
       expect(_.isObject(host._fayeClient)).toBe(true);
       expect(_.isObject(returnedClient)).toBe(true);
-      expect(returnedClient._endpoint).toEqual('https://push.podio.com/faye');
+      expect(returnedClient._endpoint).toBe('https://push.podio.com/faye');
     });
 
-    it('shouldn\'t re-initialize client. Rather return the existing, when already set', function(){
+    it('shouldn\'t re-initialize client. Rather return the existing, when already set', function() {
 
       var disableSpy = sinon.spy();
       var clientStub = sinon.stub().returns({
@@ -41,8 +41,8 @@ describe('push', function() {
       
       expect(_.isObject(host._fayeClient)).toBe(true);
       expect(_.isObject(returnedClient)).toBe(true);
-      expect(returnedClient).toEqual(clientStub);
-      expect(disableSpy.called).toEqual(false);
+      expect(returnedClient).toBe(clientStub);
+      expect(disableSpy.called).toBe(false);
     });
   });
 
@@ -58,13 +58,13 @@ describe('push', function() {
       pushLib._setSubscription(message.channel, message);
 
       expect(_.isObject(pushLib._getSubscription(message.channel))).toBe(true);
-      expect(pushLib._getSubscription(message.channel)).toEqual(message);
+      expect(pushLib._getSubscription(message.channel)).toBe(message);
     });
   });
 
   describe('_fayeExtensionOutgoing', function () {
 
-    it('should attach signature and timestamp to outgoing \'meta/subscribe\' messages', function(){
+    it('should attach signature and timestamp to outgoing \'meta/subscribe\' messages', function() {
 
       var callbackSpy = sinon.spy();
 
