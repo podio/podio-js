@@ -368,8 +368,6 @@ describe('transport', function() {
 
       expect(host._getRequestURI.calledOnce).toBe(true);
       expect(host._getRequestURI.calledWithExactly(path)).toBe(true);
-      expect(request.get.calledOnce).toBe(true);
-      expect(request.get.calledWithExactly(url)).toBe(true);
     });
 
     it('should throw an exception if authentication has not been performed before', function(done) {
@@ -392,6 +390,7 @@ describe('transport', function() {
     it('should call addRequestData, addHeaders, addCORS, setOptions with the request object and let them augment it', function() {
       var data = { data: true };
 
+      host.authObject = {};
       transport.request.call(host, 'GET', '/test', data);
 
       expect(host._addRequestData.calledOnce).toBe(true);
@@ -416,6 +415,7 @@ describe('transport', function() {
     });
 
     it('should format the method passed', function() {
+      host.authObject = {};
       transport.request.call(host, 'GET', '/test', null, function(responseData) {});
 
       expect(host._formatMethod.calledOnce).toBe(true);
