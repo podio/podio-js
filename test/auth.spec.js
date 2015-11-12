@@ -131,39 +131,33 @@ describe('auth', function() {
 
     it('should return the correct authorization URL for the client auth', function() {
       var redirectURL = 'https://www.myapp.com/oauth';
-      var utils = {
-        _getDomain: sinon.stub().returns('podio.com')
-      };
       var host = {
-        _getUtils: sinon.stub().returns(utils),
+        apiURL: 'https://podio.com',
         authType: 'client',
         clientId: 123
       };
+      
       var expectedURL = 'https://podio.com/oauth/authorize?client_id=123&redirect_uri=https%3A%2F%2Fwww.myapp.com%2Foauth&response_type=token';
-
-      expect(auth.getAuthorizationURL.call(host, redirectURL)).toEqual(expectedURL);
-      expect(utils._getDomain.calledOnce).toBe(true);
+      
+      expect(auth.getAuthorizationURL.call(host, redirectURL)).toBe(expectedURL);
     });
 
     it('should return the correct authorization URL for the server auth', function() {
       var redirectURL = 'https://www.myapp.com/oauth';
-      var utils = {
-        _getDomain: sinon.stub().returns('podio.com')
-      };
+      
       var host = {
-        _getUtils: sinon.stub().returns(utils),
+        apiURL: 'https://podio.com',
         authType: 'server',
         clientId: 123
       };
       var expectedURL = 'https://podio.com/oauth/authorize?client_id=123&redirect_uri=https%3A%2F%2Fwww.myapp.com%2Foauth&response_type=code';
 
-      expect(auth.getAuthorizationURL.call(host, redirectURL)).toEqual(expectedURL);
+      expect(auth.getAuthorizationURL.call(host, redirectURL)).toBe(expectedURL);
     });
 
     it('should throw an error when retrieving an auth URL for password auth', function() {
       var redirectURL = 'https://www.myapp.com/oauth';
       var host = {
-        utils: { _getDomain: sinon.stub().returns('podio.com') },
         authType: 'password',
         clientId: 123
       };
@@ -437,11 +431,8 @@ describe('auth', function() {
   describe('_authenticate', function() {
 
     it('should construct the request data and url correctly', function() {
-      var utils = {
-        _getDomain: sinon.stub().returns('podio.com')
-      };
       var host = {
-        _getUtils: sinon.stub().returns(utils),
+        apiURL: 'http://sub.podio.com',
         clientId: 123,
         clientSecret: 'secret',
         _authRequest: sinon.stub()
@@ -456,10 +447,9 @@ describe('auth', function() {
       auth._authenticate.call(host, requestData);
 
       expect(host._authRequest.calledOnce).toBe(true);
-      expect(host._authRequest.getCall(0).args[0]).toEqual('https://podio.com/oauth/token');
+      expect(host._authRequest.getCall(0).args[0]).toEqual('http://sub.podio.com/oauth/token');
       expect(host._authRequest.getCall(0).args[1]).toEqual(expectedRequestData);
     });
-
   });
 
   describe('_onAuthResponse', function() {
