@@ -132,7 +132,7 @@ describe('auth', function() {
     it('should return the correct authorization URL for the client auth', function() {
       var redirectURL = 'https://www.myapp.com/oauth';
       var host = {
-        apiURL: 'https://podio.com',
+        apiURL: 'https://api.podio.com',
         authType: 'client',
         clientId: 123
       };
