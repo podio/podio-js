@@ -37,6 +37,6 @@
     "URIjs": "1.16.1",
     "es6-promise": "3.0.2",
     "lodash": "3.10.1",
-    "superagent": "1.7.1"
+    "superagent": "1.7.2"
   }
 }
