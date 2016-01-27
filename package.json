@@ -30,7 +30,7 @@
     "coveralls": "2.11.6",
     "istanbul": "0.4.2",
     "jasmine-node": "1.14.5",
-    "sinon": "1.17.2"
+    "sinon": "1.17.3"
   },
   "dependencies": {
     "faye": "^1.1.1",
