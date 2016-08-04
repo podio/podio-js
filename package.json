@@ -33,7 +33,7 @@
     "sinon": "1.17.3"
   },
   "dependencies": {
-    "faye": "^1.1.1",
+    "faye": "1.1.2",
     "URIjs": "1.16.1",
     "es6-promise": "3.1.2",
     "lodash": "3.10.1",
