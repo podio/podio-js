@@ -29,7 +29,7 @@ function set(podioOAuth, authType, callback) {
     }
 
     if (typeof callback === 'function') {
-      callback();
+      callback(null);
     }
   });
 }
