@@ -37,8 +37,13 @@ router.get('/', function(req, res) {
 
     if (typeof authCode !== 'undefined') {
       podio.getAccessToken(authCode, redirectURL, function (err) {
-        // we are ready to make API calls
-        res.render('success');
+        if(err !== null) {
+          // we have catched an error
+          res.render('error', { description: 'Error:' + err.status + " / " + err.message });
+        } else {
+          // ready to make API calls
+          res.render('success');
+        }
       });
     } else if (typeof errorCode !== 'undefined') {
       // an error occured
@@ -51,13 +56,13 @@ router.get('/', function(req, res) {
 });
 
 router.get('/user', function(req, res) {
- 
+
   podio.isAuthenticated()
   .then(function() {
     return podio.request('get', '/user/status');
   })
   .then(function(responseData) {
-    res.render('user', { profile: responseData.profile });    
+    res.render('user', { profile: responseData.profile });
   })
   .catch(function(err) {
     res.send(401);
