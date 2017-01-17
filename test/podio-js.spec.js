@@ -126,9 +126,6 @@ describe('podio-js', function() {
       var instance = new PodioJS(authOptions);
 
       expect(instance.push).toBeUndefined();
-      expect(instance._getSubscription).toBeUndefined();
-      expect(instance._setSubscription).toBeUndefined();
-      expect(instance._fayeExtensionOutgoing).toBeUndefined();
       expect(instance._getFayeClient).toBeUndefined();
     });
 
@@ -146,9 +143,6 @@ describe('podio-js', function() {
       var instance = new PodioJS(authOptions, options);
 
       expect(instance.push).toBeDefined();
-      expect(instance._getSubscription).toBeDefined();
-      expect(instance._setSubscription).toBeDefined();
-      expect(instance._fayeExtensionOutgoing).toBeDefined();
       expect(instance._getFayeClient).toBeDefined();
     });
   });

@@ -19,10 +19,10 @@ describe('push', function() {
       };
 
       var returnedClient = pushLib._getFayeClient.call(host);
-      
+
       expect(_.isObject(host._fayeClient)).toBe(true);
       expect(_.isObject(returnedClient)).toBe(true);
-      expect(returnedClient._endpoint).toBe('https://push.podio.com/faye');
+      expect(returnedClient._dispatcher.endpoint.href).toBe('https://push.podio.com/faye');
     });
 
     it('shouldn\'t re-initialize client. Rather return the existing, when already set', function() {
@@ -45,67 +45,6 @@ describe('push', function() {
       expect(disableSpy.called).toBe(false);
     });
   });
-
-  describe('_getSubscription/_setSubscription', function() {
-    it('should correctly get and set subscriptions', function() {
-
-      var message = {
-        channel: 'my/test/channel',
-        timestamp: 1234,
-        signature: 'myTestSignature'
-      };
-
-      pushLib._setSubscription(message.channel, message);
-
-      expect(_.isObject(pushLib._getSubscription(message.channel))).toBe(true);
-      expect(pushLib._getSubscription(message.channel)).toBe(message);
-    });
-  });
-
-  describe('_fayeExtensionOutgoing', function () {
-
-    it('should attach signature and timestamp to outgoing \'meta/subscribe\' messages', function() {
-
-      var callbackSpy = sinon.spy();
-
-      var message = {
-        channel: '/meta/subscribe',
-        signature: 'myTestSignature',
-        timestamp: 123456789
-      };
-
-      var host = {
-        _getSubscription: sinon.stub().returns(message)
-      };
-
-      pushLib._fayeExtensionOutgoing.call(host, message, callbackSpy);
-
-      expect(callbackSpy.calledWithExactly({
-        channel: message.channel,
-        signature: message.signature,
-        timestamp: message.timestamp,
-        ext: {
-          private_pub_signature: message.signature,
-          private_pub_timestamp: message.timestamp
-        }
-      })).toBe(true);
-    });
-
-    it('shouldn\'t attach signature info to non-/meta/subscribe messages', function() {
-
-      callbackSpy = sinon.spy();
-
-      var message = {
-        channel: 'some/other/channel',
-        timestamp: 123456789,
-        signature: 'myTestSignature'
-      };
-
-      pushLib._fayeExtensionOutgoing(message, callbackSpy);
-
-      expect(callbackSpy.calledWithExactly(message));
-    });
-  })
 
   describe('subscribe', function() {
 
@@ -138,13 +77,11 @@ describe('push', function() {
     it ('should resolve if authentication has been performed', function() {
 
       var subscribeSpy = sinon.spy();
-      var setSubscriptionSpy = sinon.spy();
       
       var host = {
         _getFayeClient: sinon.stub().returns({
           subscribe: subscribeSpy
         }),
-        _setSubscription: setSubscriptionSpy,
         _getAuth: sinon.stub().returns({
           isAuthenticated: sinon.stub().returns(Promise.resolve())
         })
@@ -164,10 +101,9 @@ describe('push', function() {
       subscription.then(function() {
         // Assert that the Faye client is properly subscribed to
         expect(subscribeSpy.calledWith(options.channel, handler)).toBe(true);
-        expect(setSubscriptionSpy.called).toBe(true);
       }).catch(function(err) {
         expect(String(err)).toBe(null);
       });
     });
   });
-})
+});
