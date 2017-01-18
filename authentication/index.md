@@ -14,6 +14,7 @@ Before you can do anything you must initialize the API client using your Podio A
 
 You can initialize it like this, passing the auth settings as object as the first parameter:
 
+{% highlight %}
 ```js
 var podio = new Podio({ 
   authType: 'client', 
@@ -21,6 +22,7 @@ var podio = new Podio({
   clientSecret: clientSecret 
 });
 ```
+{% endhighlight %}
 
 The authObject has the following options:
 
