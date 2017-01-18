@@ -25,7 +25,7 @@ The `subscribe` method returns a promise that resolves when the connection is es
 
 # Example
 This example demonstrates how to subscribe to all incoming events for the *User* carrier object of the authenticated user:
-{% highlight javascript %}
+```js
   
 // Make API request to get push object
 podio.request('get','/user/status').then(function(responseBody) {
@@ -41,7 +41,7 @@ podio.request('get','/user/status').then(function(responseBody) {
     // There was an error establishing the connection...
   });
 });
-{% endhighlight %}
+```
 
 See [this detailed example](https://github.com/podio/podio-js/tree/master/examples/push_service/) for some  working code including authentication.
 

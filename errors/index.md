@@ -16,7 +16,7 @@ The [domain module](http://nodejs.org/api/domain.html) in Node can be use to cat
 
 The following example shows how to log errors produced by a GET request to /user/status:
 
-{% highlight javascript %}
+```js
 var domain = require('domain');
 var PodioJS = require('podio-js');
 
@@ -36,7 +36,7 @@ reqdomain.run(function() {
     // do something...
   });
 });
-{% endhighlight %}
+```
 
 # Browser
 
@@ -44,7 +44,7 @@ While there are polyfills for Nodes domain module for the browser we would rathe
 
 The following example shows how to extract error data from the error callback on the promise:
 
-{% highlight javascript %}
+```js
 var podio = new PodioJS({ authType: 'server', clientId: clientId, clientSecret: clientSecret });
 
 podio.request('get', '/user/status').then(function(responseData) {
@@ -55,4 +55,4 @@ podio.request('get', '/user/status').then(function(responseData) {
   console.log('HTTP status:', e.status);
   console.log('Requested URL:', e.url);
 });
-{% endhighlight %}
+```

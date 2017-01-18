@@ -20,21 +20,21 @@ callback       | Success function, called with responseData as a parameter
 
 # GET and DELETE requests
 
-{% highlight javascript %}
+```js
 podio.request('GET', '/tasks', null, function(responseData) {
   // do something with the data  
 });
-{% endhighlight %}
+```
 
 # POST and PUT requests
 
-{% highlight javascript %}
+```js
 var requestData = { data: true };
 
 podio.request('POST', '/tasks', requestData, function(responseData) {
   // response, if available
 });
-{% endhighlight %}
+```
 
 # File uploads
 
@@ -54,11 +54,11 @@ The `request` function returns a promise object which can be used instead of the
 
 Here is an example of using `request` with a promise:
 
-{% highlight javascript %}
+```js
 podio.request('GET', '/tasks').then(function(responseData) {
    // response, if available
 });
-{% endhighlight %}
+```
 
 # Error handling
 
@@ -91,7 +91,7 @@ other     | PodioError
 
 A typical error body returned by the Platform API looks like this:
 
-{% highlight json %}
+```json
 {
   "error_parameters": {},
   "error_detail": null,
@@ -104,5 +104,5 @@ A typical error body returned by the Platform API looks like this:
   "error_description": "No matching operation could be found. No body was given.",
   "error": "not_found"
 }
-{% endhighlight %}
+```
 
