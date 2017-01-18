@@ -14,13 +14,13 @@ Before you can do anything you must initialize the API client using your Podio A
 
 You can initialize it like this, passing the auth settings as object as the first parameter:
 
-{% highlight javascript %}
+```js
 var podio = new Podio({ 
   authType: 'client', 
   clientId: clientId, 
   clientSecret: clientSecret 
 });
-{% endhighlight %}
+```
 
 The authObject has the following options:
 
@@ -40,6 +40,7 @@ Flow             | Purpose
 Sever-side flow  | Web apps in NodeJS
 Client-side flow | Single-page apps in the browser
 Password auth    | Only for testing purposes or when no user interaction is possible
+App auth flow    | If you only need to interact with a single Podio app and do not need to authenticate as a specific user
 
 [Read more about authentication in general at the Podio developer site](https://developers.podio.com/authentication).
 
@@ -52,7 +53,7 @@ The example below handles three cases:
 * The user has already authenticated and they have a session stored (in memory or using the [session manager]({{site.baseurl}}/sessions).
 * The user is being redirected back to our page after authenticating.
 
-{% highlight javascript %}
+```js
 var podio = new PodioJS({
   authType: 'server', 
   clientId: <your client id>, 
@@ -81,18 +82,60 @@ podio.isAuthenticated().then(function() {
     console.log(podio.getAuthorizationURL(redirectURL));
   }
 });
-{% endhighlight %}
+```
 
 The podio-js SDK contains an [example of server-side authentication](https://github.com/podio/podio-js/tree/master/examples/server_auth) to give you a better impression on how things work.
 
 In the server side scenario the podio-js SDK will automatically refresh tokens for you.
+
+
+### App authentication flow
+
+The app authentication flow is suitable in situations where you only need data from a single app and do not wish authenticate as a specific user. It is similar to the username & password flow, but uses the app ID and a special app token as the login credentials.
+
+When you authenticate as an app you can only access that specific app and if you create content it will appear as having been created by the app itself rather than a specific user. Good uses for the app authentication flow are automated scripts that run without any user interaction.
+
+Here's an example using ES2015 syntax
+
+```js
+const Podio = require('podio-js').api;
+
+// Example config file where you might store your credentials
+import config from '../config.js'
+
+// get the API id/secret
+const clientId = config.clientId;
+const clientSecret = config.clientSecret;
+
+// get the app ID and Token for appAuthentication
+const appId = config.appId;
+const appToken = config.appToken;
+
+// instantiate the SDK
+const podio = new Podio({
+  authType: 'app',
+  clientId: clientId,
+  clientSecret: clientSecret
+});
+
+podio.authenticateWithApp(appId, appToken, (err) => {
+
+  if (err) throw new Error(err);
+
+  podio.isAuthenticated().then(() => {
+    // Ready to make API calls in here...
+
+  }).catch(err => console.log(err));
+
+});
+```
 
 ### Client-side flow
 
 The client-side flow is similar to the server-side flow and and will redirect back to your site after a user has confirmed 
 the authentication. It will use hash parameters for transferring the auth tokens. The podio-js SDK offers you a higher level abstraction for the client-side flow compared to the server-side one and will parse and read the hash URL for you. Client secret is not required for the client-side flow.
 
-{% highlight javascript %}
+```js
 var podio = new PodioJS({ authType: 'client', clientId: <your client id> });
 var redirectURL = 'https://www.myapp.com';
 
@@ -108,7 +151,7 @@ podio.isAuthenticated().then(function(){
     console.log(platform.getAuthorizationURL(redirectURL));
   }
 });
-{% endhighlight %}
+```
 
 At this point there is no support for automatic token refresh in the Podio API. A callback handler can be registered with a `onTokenWillRefresh` option passed in to the podio-js SDK on initialization. We recommend using this handler
 for reauthentication. An example of how this can be done without losing the state of your client side application by using a popup can be found [here](https://github.com/podio/podio-js/tree/master/examples/client_auth).
@@ -116,7 +159,7 @@ for reauthentication. An example of how this can be done without losing the stat
 ### Password authentication
 Password authentication will require users credentials. As it's bad practice to store your Podio password like this you should only use password-based authentication for testing or if you cannot use any of the other options.
 
-{% highlight javascript %}
+```js
 var podio = new PodioJS({
   authType: 'password', 
   clientId: <your client id>, 
@@ -132,7 +175,7 @@ podio.isAuthenticated().then(function() {
     // Make API calls here...
   });
 });
-{% endhighlight %}
+```
 
 It is considered a bad practice to store user credentials in the client side JavaScript. Please see an [example](https://github.com/podio/podio-js/tree/master/examples/password_auth) of how password authentication can be implemented.
 
