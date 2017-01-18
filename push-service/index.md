@@ -24,9 +24,9 @@ handler        | Function | Invoked on incoming messages for its subscription
 The `subscribe` method returns a promise that resolves when the connection is established (incoming events will **not** be registered before then). If it is rejected, it means the connection could not be established for some reason. One reason could be missing authentication.
 
 # Example
-This example demonstrates how to subscribe to all incoming events for the *User* carrier object of the authenticated user:
+This example demonstrates how to subscribe to all incoming events for the *User* carrier object of the authenticated user:  
+
 ```js
-  
 // Make API request to get push object
 podio.request('get','/user/status').then(function(responseBody) {
 
