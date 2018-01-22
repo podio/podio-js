@@ -1,3 +1,5 @@
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
 # podio-js [![Build Status](https://travis-ci.org/podio/podio-js.svg?branch=master)](https://travis-ci.org/podio/podio-js) [![Dependency Status](http://img.shields.io/gemnasium/podio/podio-js.svg?style=flat-square)](https://gemnasium.com/podio/podio-js) [![Coverage](http://img.shields.io/coveralls/podio/podio-js.svg?style=flat-square)](https://coveralls.io/r/podio/podio-js) 
 
 > Official Podio JavaScript SDK for Node and the browser
